@@ -96,3 +96,11 @@ tp_pdf_to_txt<-function(){
         }
     }
 }
+
+clean_txt_file_name<-function(){
+    dir_file<-dir("./record/tpup/txt")
+    old_fname<-paste("./record/tpup/txt/",dir_file,sep="")
+    new_fname<-paste("./record/tpup/txt/",gsub("續","_2",gsub("(次)?(委員會)?(會)?(議紀錄)?","",
+                    gsub("臺北市都市計畫委員會第","tpup",gsub("\\(|\\)| ","",dir("./record/tpup/txt"))))),sep="")
+    file.rename(old_fname,new_fname)
+}
