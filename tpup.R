@@ -99,10 +99,12 @@ tp_pdf_to_html<-function(){
         if(file_type == "pdf"){
             dir_name <- paste("./record/tpup/html/", file_list[i],sep="")
             uri <- paste("./record/tpup/raw/", file_list[i], sep="")
-            system(paste('"D:/xpdf/bin64/pdftohtml.exe"',uri, dir_name)) 
+            system(paste('"pdftohtml.exe"',uri, dir_name)) 
         }
     }
 }
+
+
 
 ##tp_pdf_to_txt<-function(){
 ##    library(tm)
