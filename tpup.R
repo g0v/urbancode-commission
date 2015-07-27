@@ -10,16 +10,25 @@ tpup_parse1<-function(){
     link<-xpathSApply(get_url_parse,"//div[@class='list']/ul/li/a",xmlAttrs)
     link<-data.frame(weblink=link[1,],record_name=link[2,],stringsAsFactors = FALSE)
     
+    indi1<-iconv("第","utf-8","big5")
+    indi2<-iconv("次","utf-8","big5")
+    indi.times<-paste(".*",indi1,"([0-9][0-9][0-9])",indi2,".*",sep="")
+    indi.con<-iconv("續","utf-8","big5")
+    
+    
     for(i in 1:nrow(link)){
         link[i,1]<-paste("http://www.tupc.gov.taipei/",link[i,1],sep="")
         
         txt<-link[i,2]
         txt<-gsub(">","",gsub("<","%",txt))
         txt<-iconv(URLdecode(txt),"utf-8","big5")
-        link[i,2]<-txt            
+        
+        link[i,2]<-paste("tpup",gsub(indi.times,"\\1",txt),sep="")        
+        
+        if(grepl("indi.con",txt)) {link[i,2]<-paste(link[i,2],"_2",sep="")}        
     }
     
-    write.csv(link,"tp_web_list.csv",row.names=FALSE)
+    write.csv(link,"./record/tpup/tp_web_list.csv",row.names=FALSE)
 }
 
 tpup_parse2<-function(){
@@ -28,7 +37,7 @@ tpup_parse2<-function(){
     library(XML)
     Sys.setlocale(category='LC_ALL', locale='C')
     
-    weblist<-read.csv("tp_web_list.csv",stringsAsFactors = FALSE)
+    weblist<-read.csv("./record/tpup/tp_web_list.csv",stringsAsFactors = FALSE)
         
     filetype<-c()
     pb <- txtProgressBar(max = nrow(weblist), style = 3)
@@ -50,7 +59,7 @@ tpup_parse2<-function(){
     }
     weblist <- cbind(weblist,filetype)
     
-    write.csv(weblist,"tpup_link_list.csv",row.names=FALSE)
+    write.csv(weblist,"./record/tpup/tpup_link_list.csv",row.names=FALSE)
 }
 
 checkfiletype <- function(txt){
@@ -66,7 +75,7 @@ tp_dlrecord<-function(csvfile){
     
     link.list<-read.csv(csvfile,stringsAsFactors=FALSE)
     
-    pb <- txtProgressBar(max = 840, style = 3)
+    pb <- txtProgressBar(max = nrow(link.list), style = 3)
     
     for(i in 1:nrow(link.list)){
         link<-GET(link.list[i,1])
@@ -77,30 +86,41 @@ tp_dlrecord<-function(csvfile){
     }    
 }
 
-tp_pdf_to_txt<-function(){
-    library(tm)
-    
-    if(!dir.exists("./record/tpup/txt/")){
-        dir.create("./record/tpup/txt/")
+tp_pdf_to_html<-function(){
+    if(!file.exists("./record/tpup/html")){
+        dir.create("./record/tpup/html/")
     }
+    
     file_list <- dir("./record/tpup/raw/")
     
     for(i in 1:length(file_list)){
         file_type <- substr(file_list[i], nchar(file_list[i])-2, nchar(file_list[i]))
         
         if(file_type == "pdf"){
+            dir_name <- paste("./record/tpup/html/", file_list[i],sep="")
             uri <- paste("./record/tpup/raw/", file_list[i], sep="")
-            pdf <- readPDF(control= list(text="-layout"))(elem = list(uri = uri), language="en")
-            
-            write(content(pdf), paste("./record/tpup/txt/tpup", gsub(".*?([0-9]+).*","\\1",file_list[i]), ".txt", sep=""))
+            system(paste('"D:/xpdf/bin64/pdftohtml.exe"',uri, dir_name)) 
         }
     }
 }
 
-clean_txt_file_name<-function(){
-    dir_file<-dir("./record/tpup/txt")
-    old_fname<-paste("./record/tpup/txt/",dir_file,sep="")
-    new_fname<-paste("./record/tpup/txt/",gsub("續","_2",gsub("(次)?(委員會)?(會)?(議紀錄)?","",
-                    gsub("臺北市都市計畫委員會第","tpup",gsub("\\(|\\)| ","",dir("./record/tpup/txt"))))),sep="")
-    file.rename(old_fname,new_fname)
-}
+##tp_pdf_to_txt<-function(){
+##    library(tm)
+##    
+##    if(!dir.exists("./record/tpup/txt/")){
+##        dir.create("./record/tpup/txt/")
+##    }
+##    file_list <- dir("./record/tpup/raw/")
+##    
+##    for(i in 1:length(file_list)){
+##        file_type <- substr(file_list[i], nchar(file_list[i])-2, nchar(file_list[i]))
+##        
+##        if(file_type == "pdf"){
+##            uri <- paste("./record/tpup/raw/", file_list[i], sep="")
+##            pdf <- readPDF(control= list(text="-layout"))(elem = list(uri = uri), language="en")
+##            
+##            write(content(pdf), paste("./record/tpup/txt/tpup", gsub(".*?([0-9]+).*","\\1",file_list[i]), ".txt", sep=""))
+##        }
+##    }
+##}
+
