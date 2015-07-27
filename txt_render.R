@@ -31,3 +31,7 @@ for(i in 1:length(s3.1)){
     }
 }
 }
+
+get_url<-"./record/tpup/html/tpup672.pdf/page5.html"
+html.parse<-htmlParse(get_url,encoding="utf-8")
+table.font<-xpathSApply(html.parse,"//div/span[@style='font-size:15px;vertical-align:baseline;color:#000000;']",xmlValue)
