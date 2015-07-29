@@ -34,4 +34,8 @@ for(i in 1:length(s3.1)){
 
 get_url<-"./record/tpup/html/tpup672.pdf/page5.html"
 html.parse<-htmlParse(get_url,encoding="utf-8")
-table.font<-xpathSApply(html.parse,"//div/span[@style='font-size:15px;vertical-align:baseline;color:#000000;']",xmlValue)
+parse.txt<-xpathSApply(html.parse,"//div[@class='txt']",xmlValue)
+parse.loc<-xpathSApply(html.parse,"//div[@class='txt']",xmlAttrs)
+parse.loc.left<-gsub(".*left:(.*?);.*","\\1",parse.loc[2,])
+parse.loc.top<-gsub(".*top:(.*?);.*","\\1",parse.loc[2,])
+parse.df<-data.frame(txt=parse.txt,loc.left=parse.loc.left,loc.top=parse.loc.top)
