@@ -4,8 +4,8 @@ html_parse<-function(){
     library(XML)
     library(plyr)
     
-    ##target<-672
-    target<-671
+    target<-672
+    ##target<-671
     dir.name<-paste("./record/tpup/html/tpup",target,".pdf/",sep="")
     
     flist.df<-data.frame(fname=gsub("^(.*?)\\..*","\\1",dir(dir.name)),ftype=gsub(".*\\.(.*?)$","\\1",dir(dir.name)),stringsAsFactors = FALSE)
@@ -25,6 +25,8 @@ html_parse<-function(){
         
         if(!exists("parse.done")){parse.done<-parse.df}else{parse.done<-rbind(parse.done,parse.df)}
     }
+    
+    parse.done<-parse.done[-grep("^(-)?( )?([0-9])?([0-9])?([0-9])( )?(-)?$",parse.done[,1]),]
     
     zh_number_cap<<-c("壹","貳","參","肆","伍","陸","柒","捌","玖","拾")
     zh_number<<-c("一","二","三","四","五","六","七","八","九","十")
@@ -102,4 +104,15 @@ paragraph_parse<-function(section.df){
     }
     
     return(para.list)
+}
+
+table_parse<-function(table.df){
+    y<-replicate(length(unique(table.df$loc.top))*length(unique(table.df$loc.left)),"0")
+    dim(y)<-c(length(unique(table.df$loc.top)),length(unique(table.df$loc.left)))
+    colnames(y)<-sort(unique(table.df$loc.left))
+    rownames(y)<-sort(unique(table.df$loc.top))
+    
+    for(i in 2:nrow(table.df)){
+        y[as.character(table.df[i,3]),as.character(table.df[i,2])]<-table.df[i,1]
+    }
 }
