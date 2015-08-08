@@ -1,11 +1,11 @@
-html_parse<-function(){
+record_parse<-function(target){
     library(bitops)
     library(RCurl)
     library(XML)
     library(plyr)
     
-    target<-672
-    ##target<-671
+    target<<-target
+    
     dir.name<-paste("./record/tpup/html/tpup",target,".pdf/",sep="")
     
     flist.df<-data.frame(fname=gsub("^(.*?)\\..*","\\1",dir(dir.name)),ftype=gsub(".*\\.(.*?)$","\\1",dir(dir.name)),stringsAsFactors = FALSE)
@@ -16,12 +16,8 @@ html_parse<-function(){
     
     for(i in 1:nrow(flist.df)){
         get_url<-paste("./record/tpup/html/tpup",target,".pdf/",flist.df[i,1],".",flist.df[i,2],sep="")
-        html.parse<-htmlParse(get_url,encoding="utf-8")
-        parse.txt<-xpathSApply(html.parse,"//div[@class='txt']",xmlValue)
-        parse.loc<-xpathSApply(html.parse,"//div[@class='txt']",xmlAttrs)
-        parse.loc.left<-as.integer(gsub(".*left:(.*?)px;.*","\\1",parse.loc[2,]))
-        parse.loc.top<-as.integer(gsub(".*top:(.*?)px;.*","\\1",parse.loc[2,]))
-        parse.df<-data.frame(txt=parse.txt,loc.left=parse.loc.left,loc.top=parse.loc.top,stringsAsFactors=FALSE)
+        
+        parse.df<-html_parse(get_url,mode=1)
         
         if(!exists("parse.done")){parse.done<-parse.df}else{parse.done<-rbind(parse.done,parse.df)}
     }
@@ -40,9 +36,39 @@ html_parse<-function(){
         item.list[[i]]<-parse.done[item.ind[i]:(item.ind[i+1]-1),]
     }
     
-    item.list<-lapply(item.list,item_parse)
+    names(item.list)<-parse.done$txt[c(1,grep(paste("^",zh_number_cap,collapse="|",sep=""),parse.done[,1]))]
+    
+    item.list[[1]]<-item.list[[1]][,1]
+    
+    item.list[2:item.cnt]<-lapply(item.list[2:item.cnt],item_parse)
     
     return(item.list)
+}
+
+html_parse<-function(f.path,mode){
+    html.parse<-htmlParse(f.path,encoding="utf-8")
+    
+    parse.pos<-xpathSApply(html.parse,"//div[@class='txt']",getNodePosition)
+    parse.file<-as.integer(gsub(".*/page(.*).html:.*","\\1",parse.pos))
+    parse.line<-as.integer(gsub(".*:(.*)$","\\1",parse.pos))
+    
+    if(mode==1){
+        parse.txt<-xpathSApply(html.parse,"//div[@class='txt']",xmlValue)
+        
+        parse.df<-data.frame(txt=parse.txt,file=parse.file,line=parse.line,stringsAsFactors=FALSE)
+    } 
+    else if(mode==2){
+        txt.lt<-xpathSApply(html.parse,"//div[@class='txt']",xmlChildren,addNames=FALSE)
+        txt.vector<-rapply(lapply(txt.lt,toString.XMLNode),c)
+        for(i in 1:length(txt.vector)){txt.vector[i]<-gsub("(\\[\\[[0-9]\\]\\])|\\n","",strsplit(txt.vector,"attr")[[i]][1])}
+        
+        parse.loc<-xpathSApply(html.parse,"//div[@class='txt']",xmlAttrs)
+        parse.loc.left<-as.integer(gsub(".*left:(.*?)px;.*","\\1",parse.loc[2,]))
+        parse.loc.top<-as.integer(gsub(".*top:(.*?)px;.*","\\1",parse.loc[2,]))
+        
+        parse.df<-data.frame(txt=txt.vector,loc.left=parse.loc.left,loc.top=parse.loc.top,file=parse.file,line=parse.line,stringsAsFactors=FALSE)
+    }
+    return(parse.df)
 }
 
 item_parse<-function(item.df){
@@ -72,7 +98,7 @@ case_parse<-function(case.df){
         content.list<-list(case.df)
     }
     
-    section.ind<-c(1,grep("說明：$|^決議|決議：$",content.list[[1]][,1]),nrow(content.list[[1]])+1)
+    section.ind<-c(1,grep("說明：$|^決議：|^附帶決議：",content.list[[1]][,1]),nrow(content.list[[1]])+1)
     section.cnt<-length(section.ind)-1
     
     section.list<-rep(list(NULL),section.cnt)
@@ -85,6 +111,8 @@ case_parse<-function(case.df){
     content.list[[1]]<-section.list
     
     content.list[[1]]<-lapply(content.list[[1]],paragraph_parse)
+    
+    if(length(table.ind)!=0){content.list[[2]]<-table_parse(content.list[[2]])}
     
     return(content.list)
 }
@@ -107,12 +135,39 @@ paragraph_parse<-function(section.df){
 }
 
 table_parse<-function(table.df){
-    y<-replicate(length(unique(table.df$loc.top))*length(unique(table.df$loc.left)),"0")
-    dim(y)<-c(length(unique(table.df$loc.top)),length(unique(table.df$loc.left)))
-    colnames(y)<-sort(unique(table.df$loc.left))
-    rownames(y)<-sort(unique(table.df$loc.top))
+    start.pg<-min(unique(table.df[,2]))
+    end.pg<-max(unique(table.df[,2]))
     
-    for(i in 2:nrow(table.df)){
-        y[as.character(table.df[i,3]),as.character(table.df[i,2])]<-table.df[i,1]
+    for(i in start.pg:end.pg){
+        get_url<-paste("./record/tpup/html/tpup",target,".pdf/page",i,".html",sep="")
+        
+        table.pg<-html_parse(get_url,mode=2)
+        
+        if(i==start.pg){table.pg<-table.pg[table.pg$line>table.df[1,3],]}
+        if(i==end.pg){table.pg<-table.pg[table.pg$line<=table.df[nrow(table.df),3],]}
+        
+        if(!exists("table.done")){table.done<-table.pg}else{table.done<-rbind(table.done,table.pg)}
     }
+    
+    txt_c1<-vector(mode="character",length=nrow(table.done))
+    txt_c2<-vector(mode="character",length=nrow(table.done))
+    
+    to.left<-min(table.done[,2])
+    
+    for(i in 1:nrow(table.done)){
+        txt_parse<-xmlParse(paste("<div>",table.done[i,1],"</div>",sep=""),encoding="UTF-8")
+        txt_block<-xpathSApply(txt_parse,"//span",xmlValue)
+        
+        if(table.done[i,2]==to.left){
+            txt_c1[i]<-txt_block[1]
+            txt_c2[i]<-paste(txt_block[2:length(txt_block)],collapse="")
+        } else {
+            txt_c1[i]<-NA
+            txt_c2[i]<-paste(txt_block,collapse="")
+        }
+    }
+    
+    table_ex<-data.frame(item=txt_c1,content=txt_c2,stringsAsFactors = FALSE)
+    
+    return(table_ex)
 }
