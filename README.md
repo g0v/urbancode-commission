@@ -6,5 +6,12 @@
 ## 專案目的
 把各大委員會的會議紀錄材砍回家，作為開放資料，容易查閱檢索，串聯每一次會議過程與最終實施計畫間的關係
 
+## 提案協作紀錄
+都委會紀錄資料庫化 https://g0v.hackpad.com/--BpW2Xt7s8AH
+
+(上層-開放都市計畫 http://hackfoldr.org/urbancodeg0vtw/ )
+
 ## License
 MIT http://g0v.mit-license.org
+
+註：都委會會議紀錄原始文件由各級委員會網站下載，版權依相關法令規範
