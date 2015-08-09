@@ -29,7 +29,7 @@ json_convert<-function(result,target){
         if(grepl("報告事項",names(result[m]))){
             name.tag<-"report_item"
         } else if(grepl("審議事項",names(result[m]))){
-            name.tag<-"delibrate_item"
+            name.tag<-"deliberate_item"
         } else if(grepl("臨時動議",names(result[m]))){
             name.tag<-"extempore_item"
         }
