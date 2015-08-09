@@ -78,7 +78,7 @@ item_parse<-function(item.df){
     case.list<-rep(list(NULL),case.cnt)
     
     if(case.cnt==0){
-        case.list[[1]]<-paragraph_parse(item.df)
+        case.list[[1]]<-case_parse(item.df)
     } else {
         for(i in 1:case.cnt){
             case.list[[i]]<-item.df[case.ind[i]:(case.ind[i+1]-1),]
@@ -98,7 +98,7 @@ case_parse<-function(case.df){
         content.list<-list(case.df)
     }
     
-    section.ind<-c(1,grep("說明：$|^決議：|^附帶決議：",content.list[[1]][,1]),nrow(content.list[[1]])+1)
+    section.ind<-c(1,grep("說明(：|:)$|^決議(：|:)|^附帶決議(：|:)",content.list[[1]][,1]),nrow(content.list[[1]])+1)
     section.cnt<-length(section.ind)-1
     
     section.list<-rep(list(NULL),section.cnt)
