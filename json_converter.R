@@ -66,27 +66,27 @@ header_parse<-function(header_txt){
         return(jsontxt)
     }
     else if (grepl("^地點",header_txt)){
-        location<-gsub("^地點：(.*)$","\\1",header_txt)
+        location<-gsub("^地點(：|:)(.*)$","\\2",header_txt)
         jsontxt<-paste("\"location\":\"",location,"\"",sep="")
         return(jsontxt)
     }
     else if (grepl("^主席",header_txt)){
-        chairman<-gsub("^主席：(.*)$","\\1",header_txt)
+        chairman<-gsub("^主席(：|:)(.*)$","\\2",header_txt)
         jsontxt<-paste("\"chairman\":\"",chairman,"\"",sep="")
         return(jsontxt)
     }
     else if (grepl("^彙整",header_txt)){
-        note_taker<-gsub("^彙整：(.*)$","\\1",header_txt)
+        note_taker<-gsub("^彙整(：|:)(.*)$","\\2",header_txt)
         jsontxt<-paste("\"note_taker\":\"",note_taker,"\"",sep="")
         return(jsontxt)
     }
     else if (grepl("^出席委員",header_txt)){
-        attend_committee<-gsub("^出席委員：(.*)$","\\1",header_txt)
+        attend_committee<-gsub("^出席委員(：|:)(.*)$","\\2",header_txt)
         jsontxt<-paste("\"attend_committee\":\"",attend_committee,"\"",sep="")
         return(jsontxt)
     }
     else if (grepl("^列席單位",header_txt)){
-        attend_unit<-gsub("^列席單位人員：(.*)$","\\1",header_txt)
+        attend_unit<-gsub("^列席單位人員(：|:)(.*)$","\\2",header_txt)
         jsontxt<-paste("\"attend_unit\":\"",attend_unit,"\"",sep="")
         return(jsontxt)
     }
@@ -101,18 +101,18 @@ body_txt_parse<-function(body_txt){
             json.vector[1]<-paste("\"null\":[",value,"]",sep="")
         } else {
             if(grepl("事項",names(body_txt[i]))){
-                case<-gsub("案名：(*)","\\1",body_txt[[i]][[1]])
+                case<-gsub("案名(：|:)(*)","\\2",body_txt[[i]][[1]])
                 json.vector[1]<-paste("\"case\":\"",case,"\"",sep="")
             }
-            else if(grepl("說明：",names(body_txt[i]))){
+            else if(grepl("說明(：|:)",names(body_txt[i]))){
                 description<-paste("\"",body_txt[[i]],"\"",sep="",collapse=",")
                 json.vector[i]<-paste("\"description\":[",description,"]",sep="")
             }
-            else if(grepl("^決議：",names(body_txt[i]))){
+            else if(grepl("^決議(：|:)",names(body_txt[i]))){
                 resolution<-paste("\"",body_txt[[i]],"\"",sep="",collapse=",")
                 json.vector[i]<-paste("\"resolution\":[",resolution,"]",sep="")
             }
-            else if(grepl("^附帶決議：",names(body_txt[i]))){
+            else if(grepl("^附帶決議(：|:)",names(body_txt[i]))){
                 add_resolution<-paste("\"",body_txt[[i]],"\"",sep="",collapse=",")
                 json.vector[i]<-paste("\"add_resolution\":[",add_resolution,"]",sep="")
             }
