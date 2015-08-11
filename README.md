@@ -15,3 +15,20 @@
 MIT http://g0v.mit-license.org
 
 註：都委會會議紀錄原始文件由各級委員會網站下載，版權依相關法令規範
+
+## 資料存放說明
+### /code
+R code 存放位置
+
+### /record/XXXAA
+委員會會議記錄存放位置
+
+XXX = 地區碼 沿用 ISO3166-2:TW https://zh.wikipedia.org/wiki/ISO_3166-2:TW
+
+AA = 委會員類別 UP=都委會 RP=區委會 (其餘類別再增加)
+
+其下：
+
+/raw ：存放原始資料
+
+/txt or /html ：存放轉檔資料
