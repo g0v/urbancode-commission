@@ -20,7 +20,7 @@ tnup_parse1<-function(){
     
     link <- cbind(link,filetype)
     
-    write.csv(link,"tnup_link_list.csv",row.names=FALSE)
+    write.csv(link,"./record/tnup/tnup_link_list.csv",row.names=FALSE)
 }
 
 checkfiletype <- function(txt){
@@ -36,10 +36,10 @@ tn_dlrecord<-function(csvfile){
     
     link.list<-read.csv(csvfile,stringsAsFactors=FALSE)
     
-    if (!dir.exists("./record/tnup/raw/")) {
-        dir.create("./record/tnup/")
-        dir.create("./record/tnup/raw/")
-    }
+    ##if (!dir.exists("./record/tnup/raw/")) {
+    ##    dir.create("./record/tnup/")
+    ##    dir.create("./record/tnup/raw/")
+    ##}
     
     pb <- txtProgressBar(max = nrow(link.list), style = 3)
     
