@@ -169,5 +169,14 @@ table_parse<-function(table.df){
     
     table_ex<-data.frame(item=txt_c1,content=txt_c2,stringsAsFactors = FALSE)
     
-    return(table_ex)
+    pet.ind<-c(1,grep("陳情人",table.ex[,2]),nrow(table.ex)+1)
+    pet.cnt<-length(pet.ind)-1
+    
+    pet.list<-rep(list(NULL),pet.cnt)
+    
+    for (i in 1:pet.cnt){
+        pet.list[[i]]<-table.ex[pet.ind[i]:(pet.ind[i+1]-1),]
+    }
+    
+    return(pet.list)
 }
