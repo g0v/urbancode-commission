@@ -6,7 +6,7 @@ record_parse<-function(target){
     
     target<<-target
     
-    dir.name<-paste("./record/tpup/html/tpup",target,".pdf/",sep="")
+    dir.name<-paste("./record/TPEUP/html/tpup",target,".pdf/",sep="")
     
     flist.df<-data.frame(fname=gsub("^(.*?)\\..*","\\1",dir(dir.name)),ftype=gsub(".*\\.(.*?)$","\\1",dir(dir.name)),stringsAsFactors = FALSE)
     flist.df$docuID<-as.integer(substr(flist.df[,1],5,length(flist.df[,1])))
@@ -15,7 +15,7 @@ record_parse<-function(target){
     flist.df<-flist.df[complete.cases(flist.df),]
     
     for(i in 1:nrow(flist.df)){
-        get_url<-paste("./record/tpup/html/tpup",target,".pdf/",flist.df[i,1],".",flist.df[i,2],sep="")
+        get_url<-paste("./record/TPEUP/html/tpup",target,".pdf/",flist.df[i,1],".",flist.df[i,2],sep="")
         
         parse.df<-html_parse(get_url,mode=1)
         
@@ -139,7 +139,7 @@ table_parse<-function(table.df){
     end.pg<-max(unique(table.df[,2]))
     
     for(i in start.pg:end.pg){
-        get_url<-paste("./record/tpup/html/tpup",target,".pdf/page",i,".html",sep="")
+        get_url<-paste("./record/TPEUP/html/tpup",target,".pdf/page",i,".html",sep="")
         
         table.pg<-html_parse(get_url,mode=2)
         
@@ -169,13 +169,13 @@ table_parse<-function(table.df){
     
     table_ex<-data.frame(item=txt_c1,content=txt_c2,stringsAsFactors = FALSE)
     
-    pet.ind<-c(1,grep("陳情人",table.ex[,2]),nrow(table.ex)+1)
+    pet.ind<-c(1,grep("陳情人",table_ex[,2]),nrow(table_ex)+1)
     pet.cnt<-length(pet.ind)-1
     
     pet.list<-rep(list(NULL),pet.cnt)
     
     for (i in 1:pet.cnt){
-        pet.list[[i]]<-table.ex[pet.ind[i]:(pet.ind[i+1]-1),]
+        pet.list[[i]]<-table_ex[pet.ind[i]:(pet.ind[i+1]-1),]
     }
     
     return(pet.list)
