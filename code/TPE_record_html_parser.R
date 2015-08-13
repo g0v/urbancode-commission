@@ -167,16 +167,26 @@ table_parse<-function(table.df){
         }
     }
     
-    table_ex<-data.frame(item=txt_c1,content=txt_c2,stringsAsFactors = FALSE)
+    table.ex<-data.frame(item=txt_c1,content=txt_c2,stringsAsFactors = FALSE)
     
-    pet.ind<-c(1,grep("陳情人",table_ex[,2]),nrow(table_ex)+1)
+    table.ex<-table.ex[-grep("^(-)?( )?([0-9])?([0-9])?([0-9])( )?(-)?$",table.ex[,2]),]
+    
+    pet.ind<-c(1,grep("陳情人",table.ex[,2]),nrow(table.ex)+1)
     pet.cnt<-length(pet.ind)-1
     
     pet.list<-rep(list(NULL),pet.cnt)
     
     for (i in 1:pet.cnt){
-        pet.list[[i]]<-table_ex[pet.ind[i]:(pet.ind[i+1]-1),]
+        pet.list[[i]]<-table.ex[pet.ind[i]:(pet.ind[i+1]-1),]
     }
     
     return(pet.list)
+}
+
+table.pet_parse<-function(pet.df){
+    c.ind<-c(1,grep("^1\\.|^1、|^一、",pet.df),nrow(pet.df)+1)
+    c.cnt<-length(c.ind)-1
+    
+    c.list<-rep(list(NULL),para.cnt)
+    pet.df[]
 }
