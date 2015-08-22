@@ -170,6 +170,7 @@ table_parse<-function(table.df){
     table.ex<-data.frame(item=txt_c1,content=txt_c2,stringsAsFactors = FALSE)
     
     table.ex<-table.ex[-grep("^(-)?( )?([0-9])?([0-9])?([0-9])( )?(-)?$",table.ex[,2]),]
+    table.ex[grep("^NA",table.ex[,2]),2]<-NA
     
     pet.ind<-c(1,grep("陳情人",table.ex[,2]),nrow(table.ex)+1)
     pet.cnt<-length(pet.ind)-1
@@ -184,9 +185,17 @@ table_parse<-function(table.df){
 }
 
 table.pet_parse<-function(pet.df){
-    c.ind<-c(1,grep("^1\\.|^1、|^一、",pet.df),nrow(pet.df)+1)
+    c.ind1<-grep("^1\\.|^1、|^一、",pet.df[,2])
+    c.ind2<-grep("^陳( )?情( )?理( )?由( )?|^建( )?議( )?辦( )?法( )?|^市( )?府( )?回( )?應( )?|^委( )?員( )?會( )?決( )?議( )?",pet.df[,1])
+    c.ind<-c(1,c.ind1,c.ind2,nrow(pet.df)+1)
+    c.ind<-c.ind[order(c.ind)]
     c.cnt<-length(c.ind)-1
     
-    c.list<-rep(list(NULL),para.cnt)
-    pet.df[]
+    c.list<-rep(list(NULL),c.cnt)
+    
+    for (i in 1:c.cnt){
+        c.list[[i]]<-pet.df[c.ind[i]:(c.ind[i+1]-1),]
+    }
+    
+    return(c.list)
 }
