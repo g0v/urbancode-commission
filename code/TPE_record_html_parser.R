@@ -181,21 +181,40 @@ table_parse<-function(table.df){
         pet.list[[i]]<-table.ex[pet.ind[i]:(pet.ind[i+1]-1),]
     }
     
+    pet.list<-lapply(pet.list,table.pet_parse)
+    
     return(pet.list)
 }
 
 table.pet_parse<-function(pet.df){
-    c.ind1<-grep("^1\\.|^1、|^一、",pet.df[,2])
-    c.ind2<-grep("^陳( )?情( )?理( )?由( )?|^建( )?議( )?辦( )?法( )?|^市( )?府( )?回( )?應( )?|^委( )?員( )?會( )?決( )?議( )?",pet.df[,1])
-    c.ind<-c(1,c.ind1,c.ind2,nrow(pet.df)+1)
-    c.ind<-c.ind[order(c.ind)]
+    c.ind<-c(1,grep("。$|？$|！$|：$",pet.df[,2])+1)
     c.cnt<-length(c.ind)-1
     
     c.list<-rep(list(NULL),c.cnt)
     
-    for (i in 1:c.cnt){
-        c.list[[i]]<-pet.df[c.ind[i]:(c.ind[i+1]-1),]
+    if(c.cnt==0){c.list[[1]]<-pet.df} else{
+        for (i in 1:c.cnt){
+            c.list[[i]]<-pet.df[c.ind[i]:(c.ind[i+1]-1),]
+        }
     }
     
+    c.list<-lapply(c.list,table.sec_parse)
+    
     return(c.list)
+}
+
+table.sec_parse<-function(c.df){
+    l.define<-c("陳( )?情( )?理( )?由( )?","建( )?議( )?辦( )?法( )?","市( )?府( )?回( )?應( )?","說( )?明( )?","委( )?員( )?會( )?決( )?議( )?")
+    l.ind<-grep(paste("^",l.define,collapse="|",sep=""),c.df[,1])
+    
+    if(length(l.ind)!=0){
+        for(i in 1:length(l.ind)){
+            c.df[l.ind[i],2]<-paste(gsub(paste("^",l.define,collapse="|",sep=""),"",c.df[l.ind[i],1]),c.df[l.ind[i],2],sep="")
+            c.df[l.ind[i],1]<-gsub(gsub(paste("^",l.define,collapse="|",sep=""),"\\1",c.df[l.ind[i],1]),"",c.df[l.ind[i],1])
+        }
+    }
+    
+    c.vector<-gsub("NA","",paste(c.df[,2],collapse=""))
+    
+    return(c.vector)
 }
