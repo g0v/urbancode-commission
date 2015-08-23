@@ -22,13 +22,24 @@ record_parse<-function(target){
         if(!exists("parse.done")){parse.done<-parse.df}else{parse.done<-rbind(parse.done,parse.df)}
     }
     
-    parse.done<-parse.done[-grep("^(-)?( )?([0-9])?([0-9])?([0-9])( )?(-)?$",parse.done[,1]),]
+    page.n<-grep("^第(.*)?頁$",parse.done[,1])
+    if(length(page.n)==0){
+        parse.done<-parse.done[-grep("^(-)?( )?([0-9])?([0-9])?([0-9])( )?(-)?$",parse.done[,1]),]
+    } else {
+        parse.done<-parse.done[-grep("^第(.*)頁$",parse.done[,1]),]
+    }
     
     zh_number_cap<<-c("壹","貳","參","肆","伍","陸","柒","捌","玖","拾")
     zh_number<<-c("一","二","三","四","五","六","七","八","九","十")
+    item_title<-c("報告事項","審議事項","臨時動議")
     
     item.ind<-c(1,grep(paste("^",zh_number_cap,collapse="|",sep=""),parse.done[,1]),nrow(parse.done)+1)
     item.cnt<-length(item.ind)-1
+    
+    if(item.cnt==1){
+        item.ind<-c(1,grep(paste("^",item_title,"$",collapse="|",sep=""),parse.done[,1]),nrow(parse.done),nrow(parse.done)+1)
+        item.cnt<-length(item.ind)-1
+    }
     
     item.list<-rep(list(NULL),item.cnt)
     
