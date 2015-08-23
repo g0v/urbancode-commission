@@ -33,13 +33,18 @@ record_parse<-function(target){
     zh_number<<-c("一","二","三","四","五","六","七","八","九","十")
     item_title<-c("報告事項","審議事項","臨時動議")
     
-    item.ind<-c(1,grep(paste("^",zh_number_cap,collapse="|",sep=""),parse.done[,1]),nrow(parse.done)+1)
+    item.ind1<-c(1,grep(paste("^",zh_number_cap,"、",collapse="|",sep=""),parse.done[,1]),nrow(parse.done)+1)
+    
+    if(length(item.ind1)==2){
+        item.ind1<-c(1,grep(paste("^",item_title,"$",collapse="|",sep=""),parse.done[,1]),nrow(parse.done),nrow(parse.done)+1)
+    }
+    
+    item.ind2<-grep("散會",parse.done[,1])
+    item.ind<-unique(c(item.ind1,item.ind2))
+    item.ind<-item.ind[order(item.ind)]
+    
     item.cnt<-length(item.ind)-1
     
-    if(item.cnt==1){
-        item.ind<-c(1,grep(paste("^",item_title,"$",collapse="|",sep=""),parse.done[,1]),nrow(parse.done),nrow(parse.done)+1)
-        item.cnt<-length(item.ind)-1
-    }
     
     item.list<-rep(list(NULL),item.cnt)
     
@@ -166,8 +171,14 @@ table_parse<-function(table.df){
     to.left<-min(table.done[,2])
     
     for(i in 1:nrow(table.done)){
+        table.done[i,1]<-gsub("<U\\+FF62>","「",table.done[i,1])
+        table.done[i,1]<-gsub("<U\\+FF63>","」",table.done[i,1])
+        table.done[i,1]<-gsub("<U\\+7282>","犁",table.done[i,1])
+        
         txt_parse<-xmlParse(paste("<div>",table.done[i,1],"</div>",sep=""),encoding="UTF-8")
         txt_block<-xpathSApply(txt_parse,"//span",xmlValue)
+        
+        ##print(i) ##line for debugging
         
         if(table.done[i,2]==to.left){
             txt_c1[i]<-txt_block[1]
