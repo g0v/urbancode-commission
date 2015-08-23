@@ -5,8 +5,9 @@ json_convert<-function(result,target){
     for (i in 1:length(result[[1]])){json_header[i]<-header_parse(result[[1]][i])}
     
     tailer<-paste(result[[length(result)]])
-    t.hour<-gsub(".*\\((.*) 時.*","\\1",tailer)
-    t.minute<-gsub(".*時 (.*) 分.*","\\1",tailer)
+    t.vector<-unique(na.omit(as.numeric(unlist(strsplit(tailer, "[^0-9]+")))))
+    t.hour<-t.vector[1]
+    t.minute<-t.vector[2]
     e.time<-paste(t.hour,":",t.minute,sep="")
     json_header[2]<-paste(json_header[2],",\"end_time\":\"",e.time,"\"",sep="")
     
@@ -16,8 +17,6 @@ json_convert<-function(result,target){
     json_body<-rep(list(NULL),(length(result)-2))
     
     for(m in 2:(length(result)-1)){
-        ##json_body[[m-1]]<-vector(mode="character",length=length(result[[m]]))
-        
         for(i in 1:length(result[[m]])){
             json_body_txt<-paste(body_txt_parse(result[[m]][[i]][[1]]),collapse=",")
             if(length(result[[m]][[i]])==2){
@@ -26,8 +25,6 @@ json_convert<-function(result,target){
             } else {
                 json_body[[m-1]][[i]]<-paste("{",json_body_txt,"}",sep="")
             }
-            
-            
         }
         
         name.tag<-""
@@ -136,7 +133,7 @@ body_table_parse<-function(body_table){
     }
     
     tabletxt<-paste(json.vector,collapse=",",sep="")
-    jsontxt<-paste("\"petition\":[",jsontxt,"]",sep="")
+    jsontxt<-paste("\"petition\":[",tabletxt,"]",sep="")
     
     return(jsontxt)
 }
