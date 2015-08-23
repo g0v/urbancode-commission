@@ -20,9 +20,14 @@ json_convert<-function(result,target){
         
         for(i in 1:length(result[[m]])){
             json_body_txt<-paste(body_txt_parse(result[[m]][[i]][[1]]),collapse=",")
-            json_body_table<-paste(body_table_parse(result[[m]][[i]][[2]]),collapse=",")
+            if(length(result[[m]][[i]])==2){
+                json_body_table<-paste(body_table_parse(result[[m]][[i]][[2]]),collapse=",")
+                json_body[[m-1]][[i]]<-paste("{",paste(c(json_body_txt,json_body_table),collapse=","),"}",sep="")
+            } else {
+                json_body[[m-1]][[i]]<-paste("{",json_body_txt,"}",sep="")
+            }
             
-            json_body[[m-1]][[i]]<-paste("{",paste(c(json_body_txt,json_body_table),collapse=","),"}",sep="")
+            
         }
         
         name.tag<-""
@@ -123,5 +128,15 @@ body_txt_parse<-function(body_txt){
 }
 
 body_table_parse<-function(body_table){
-    return("\"petition\":[]")
+    json.vector<-vector(mode="character",length=length(body_table))
+    
+    for(i in 1:length(json.vector)){
+        table.txt<-paste("\"",unlist(body_table[[i]]),"\"",collapse=",",sep="")
+        json.vector[i]<-paste("[",table.txt,"]",sep="")
+    }
+    
+    tabletxt<-paste(json.vector,collapse=",",sep="")
+    jsontxt<-paste("\"petition\":[",jsontxt,"]",sep="")
+    
+    return(jsontxt)
 }
