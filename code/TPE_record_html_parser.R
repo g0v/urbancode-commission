@@ -171,9 +171,7 @@ table_parse<-function(table.df){
     to.left<-min(table.done[,2])
     
     for(i in 1:nrow(table.done)){
-        table.done[i,1]<-gsub("<U\\+FF62>","「",table.done[i,1])
-        table.done[i,1]<-gsub("<U\\+FF63>","」",table.done[i,1])
-        table.done[i,1]<-gsub("<U\\+7282>","犁",table.done[i,1])
+        table.done[i,1]<-gsub("<U\\+(.*?)>","(\\1)",table.done[i,1])
         
         txt_parse<-xmlParse(paste("<div>",table.done[i,1],"</div>",sep=""),encoding="UTF-8")
         txt_block<-xpathSApply(txt_parse,"//span",xmlValue)
