@@ -34,6 +34,8 @@ json_convert<-function(result,target){
             name.tag<-"deliberate_item"
         } else if(grepl("臨時動議",names(result[m]))){
             name.tag<-"extempore_item"
+        } else {
+            name.tag<-"other"
         }
     
         json_body[[m-1]]<-paste("\"",name.tag,"\":[",paste(json_body[[m-1]],collapse=","),"]",sep="")
@@ -44,11 +46,12 @@ json_convert<-function(result,target){
     ##block 3:export json
     json_fulltxt<-paste("{",json_header,",",json_body,"}",sep="")
     
-    f.name<-paste(target,".json",sep="")
+    f.name<-paste("./record/TPEUP/JSON/",target,".json",sep="")
     write(json_fulltxt,file=f.name)
 }
 
 header_parse<-function(header_txt){
+    if(Encoding(header_txt)=="UTF-8"){header_txt<-iconv(header_txt,"UTF-8","BIG5")}
     if (grepl("臺北市都市計畫委員會第(.*)次委員會議紀錄",header_txt)){
         session<-gsub(".*第 (.*) 次.*","\\1",header_txt)
         jsontxt<-paste("\"title\":\"",header_txt,"\",\"session\":",session,sep="")
@@ -118,6 +121,10 @@ body_txt_parse<-function(body_txt){
                 add_resolution<-paste("\"",body_txt[[i]],"\"",sep="",collapse=",")
                 json.vector[i]<-paste("\"add_resolution\":[",add_resolution,"]",sep="")
             }
+            else {
+                other_content<-paste("\"",body_txt[[i]],"\"",sep="",collapse=",")
+                json.vector[i]<-paste("\"other_content\":[",other_content,"]",sep="")
+            }
         }
     }
     
@@ -128,7 +135,8 @@ body_table_parse<-function(body_table){
     json.vector<-vector(mode="character",length=length(body_table))
     
     for(i in 1:length(json.vector)){
-        table.txt<-paste("\"",unlist(body_table[[i]]),"\"",collapse=",",sep="")
+        table.txt<-paste("\"",gsub("\"","(quote)",unlist(body_table[[i]])),"\"",collapse=",",sep="")
+        ##table.txt<-paste("\"",unlist(body_table[[i]]),"\"",collapse=",",sep="")
         json.vector[i]<-paste("[",table.txt,"]",sep="")
     }
     

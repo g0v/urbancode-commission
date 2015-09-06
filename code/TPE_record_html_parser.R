@@ -52,7 +52,7 @@ record_parse<-function(target){
         item.list[[i]]<-parse.done[item.ind[i]:(item.ind[i+1]-1),]
     }
     
-    names(item.list)<-parse.done$txt[c(1,grep(paste("^",zh_number_cap,collapse="|",sep=""),parse.done[,1]))]
+    names(item.list)<-parse.done[item.ind[-length(item.ind)],1]
     
     item.list[[1]]<-item.list[[1]][,1]
     
@@ -165,15 +165,21 @@ table_parse<-function(table.df){
         if(!exists("table.done")){table.done<-table.pg}else{table.done<-rbind(table.done,table.pg)}
     }
     
+    table.done[,1]<-paste("<div>",table.done[,1],"</div>",sep="")
+    
+    write.csv(table.done,file="cache.csv")
+    table.done<-read.csv("cache.csv",stringsAsFactors=FALSE,encoding="BIG5")[,-1]
+    
     txt_c1<-vector(mode="character",length=nrow(table.done))
     txt_c2<-vector(mode="character",length=nrow(table.done))
     
     to.left<-min(table.done[,2])
     
     for(i in 1:nrow(table.done)){
-        table.done[i,1]<-gsub("<U\\+(.*?)>","(\\1)",table.done[i,1])
+        table_txt<-iconv(table.done[i,1],"BIG5","UTF-8")
+        table_txt<-gsub("<U\\+(.*?)>","(\\1)",table_txt)
         
-        txt_parse<-xmlParse(paste("<div>",table.done[i,1],"</div>",sep=""),encoding="UTF-8")
+        txt_parse<-xmlParse(table_txt,encoding="UTF-8")
         txt_block<-xpathSApply(txt_parse,"//span",xmlValue)
         
         ##print(i) ##line for debugging
@@ -190,7 +196,9 @@ table_parse<-function(table.df){
     table.ex<-data.frame(item=txt_c1,content=txt_c2,stringsAsFactors = FALSE)
     
     table.ex<-table.ex[-grep("^(-)?( )?([0-9])?([0-9])?([0-9])( )?(-)?$",table.ex[,2]),]
-    table.ex[grep("^NA",table.ex[,2]),2]<-NA
+    if(length(grep("^NA",table.ex[,2]))>0){
+        table.ex[grep("^NA",table.ex[,2]),2]<-NA
+    }
     
     pet.ind<-c(1,grep("陳情人",table.ex[,2]),nrow(table.ex)+1)
     pet.cnt<-length(pet.ind)-1
