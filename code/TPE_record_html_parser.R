@@ -84,6 +84,7 @@ html_parse<-function(f.path,mode){
         
         parse.df<-data.frame(txt=txt.vector,loc.left=parse.loc.left,loc.top=parse.loc.top,file=parse.file,line=parse.line,stringsAsFactors=FALSE)
     }
+    
     return(parse.df)
 }
 
@@ -134,6 +135,7 @@ case_parse<-function(case.df){
 }
 
 paragraph_parse<-function(section.df){
+    section.df[,1]<-sub("。$","。\\n",section.df[,1])
     para.ind<-c(grep(paste("^(十)?",zh_number,"、",collapse="|",sep=""),section.df[,1]),nrow(section.df)+1)
     para.cnt<-length(para.ind)-1
         
@@ -141,9 +143,11 @@ paragraph_parse<-function(section.df){
    
     if(para.cnt==0){
         para.list[[1]]<-paste(section.df[,1],collapse="",sep="")
+        para.list[[1]]<-gsub("。/n$","。",para.list[[1]])
     } else {
         for(i in 1:para.cnt){
             para.list[[i]]<-paste(section.df[para.ind[i]:(para.ind[i+1]-1),1],collapse="",sep="")
+            para.list[[i]]<-gsub("。/n$","。",para.list[[i]])
         }
     }
     
