@@ -135,7 +135,7 @@ case_parse<-function(case.df){
 }
 
 paragraph_parse<-function(section.df){
-    section.df[,1]<-sub("。$","。\\n",section.df[,1])
+    section.df[,1]<-sub("。$","。/n",section.df[,1])
     para.ind<-c(grep(paste("^(十)?",zh_number,"、",collapse="|",sep=""),section.df[,1]),nrow(section.df)+1)
     para.cnt<-length(para.ind)-1
         
