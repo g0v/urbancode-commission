@@ -87,18 +87,18 @@ tp_dlrecord<-function(csvfile){
 }
 
 tp_pdf_to_html<-function(){
-    if(!file.exists("./record/tpup/html")){
-        dir.create("./record/tpup/html/")
+    if(!file.exists("./record/TPEUP/html")){
+        dir.create("./record/TPEUP/html/")
     }
     
-    file_list <- dir("./record/tpup/raw/")
+    file_list <- dir("./record/TPEUP/raw/")
     
     for(i in 1:length(file_list)){
         file_type <- substr(file_list[i], nchar(file_list[i])-2, nchar(file_list[i]))
         
         if(file_type == "pdf"){
-            dir_name <- paste("./record/tpup/html/", file_list[i],sep="")
-            uri <- paste("./record/tpup/raw/", file_list[i], sep="")
+            dir_name <- paste("./record/TPEUP/html/", file_list[i],sep="")
+            uri <- paste("./record/TPEUP/raw/", file_list[i], sep="")
             system(paste('"pdftohtml.exe"',uri, dir_name)) 
         }
     }

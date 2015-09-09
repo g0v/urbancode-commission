@@ -30,7 +30,7 @@ json_convert<-function(result,target){
         name.tag<-""
         if(grepl("報告事項",names(result[m]))){
             name.tag<-"report_item"
-        } else if(grepl("審議事項",names(result[m]))){
+        } else if(grepl("審議事項|討論事項",names(result[m]))){
             name.tag<-"deliberate_item"
         } else if(grepl("臨時動議",names(result[m]))){
             name.tag<-"extempore_item"
@@ -52,7 +52,7 @@ json_convert<-function(result,target){
 
 header_parse<-function(header_txt){
     if(Encoding(header_txt)=="UTF-8"){header_txt<-iconv(header_txt,"UTF-8","BIG5")}
-    if (grepl("臺北市都市計畫委員會第(.*)次委員會議紀錄",header_txt)){
+    if (grepl("(臺|台)北市都市計畫委員會第(.*)次委員(會場)?會議紀錄",header_txt)){
         session<-gsub(".*第 (.*) 次.*","\\1",header_txt)
         jsontxt<-paste("\"title\":\"",header_txt,"\",\"session\":",session,sep="")
         return(jsontxt)
@@ -80,8 +80,8 @@ header_parse<-function(header_txt){
         jsontxt<-paste("\"chairman\":\"",chairman,"\"",sep="")
         return(jsontxt)
     }
-    else if (grepl("^彙整",header_txt)){
-        note_taker<-gsub("^彙整(：|:)(.*)$","\\2",header_txt)
+    else if (grepl("^彙整|^紀錄",header_txt)){
+        note_taker<-gsub("^彙整|^紀錄(：|:)(.*)$","\\2",header_txt)
         jsontxt<-paste("\"note_taker\":\"",note_taker,"\"",sep="")
         return(jsontxt)
     }
