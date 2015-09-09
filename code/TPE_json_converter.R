@@ -53,19 +53,23 @@ json_convert<-function(result,target){
 header_parse<-function(header_txt){
     if(Encoding(header_txt)=="UTF-8"){header_txt<-iconv(header_txt,"UTF-8","BIG5")}
     if (grepl("(臺|台)北市都市計畫委員會第(.*)次委員(會場)?會議紀錄",header_txt)){
-        session<-gsub(".*第 (.*) 次.*","\\1",header_txt)
+        session<-number_convert(gsub(".*第( )?(.*)( )?次.*","\\2",header_txt))
         jsontxt<-paste("\"title\":\"",header_txt,"\",\"session\":",session,sep="")
         return(jsontxt)
     }
     else if (grepl("^時間",header_txt)) {
-        m.year<-gsub(".*中華民國 (.*) 年.*","\\1",header_txt)
-        m.month<-gsub(".*年 (.*) 月.*","\\1",header_txt)
-        m.day<-gsub(".*月 (.*) 日.*","\\1",header_txt)
+        m.year<-number_convert(gsub(".*中華民國( )?(.*)( )?年.*","\\2",header_txt))
+        m.month<-number_convert(gsub(".*年( )?(.*)( )?月.*","\\2",header_txt))
+        m.day<-number_convert(gsub(".*月( )?(.*)( )?日.*","\\2",header_txt))
         m.date<-paste(m.year,"/",m.month,"/",m.day,sep="")
         
-        t.hour<-gsub(".*午 (.*) 時.*","\\1",header_txt)
-        t.minute<-gsub(".*時 (.*) 分.*","\\1",header_txt)
-        s.time<-paste(t.hour,":",t.minute,sep="")
+        t.hour<-number_convert(gsub(".*午( )?(.*)( )?時.*?","\\2",header_txt))
+        s.time<-t.hour
+        
+        if(grepl("分",header_txt)){
+            t.minute<-number_convert(gsub(".*時( )?(.*)( )?分.*?","\\2",header_txt))
+            s.time<-paste(s.time,":",t.minute,sep="")
+        }
         
         jsontxt<-paste("\"date\":\"",m.date,"\",\"start_time\":\"",s.time,"\"",sep="")
         return(jsontxt)
@@ -94,6 +98,8 @@ header_parse<-function(header_txt){
         attend_unit<-gsub("^列席單位人員(：|:)(.*)$","\\2",header_txt)
         jsontxt<-paste("\"attend_unit\":\"",attend_unit,"\"",sep="")
         return(jsontxt)
+    } else {
+        jsontxt<-paste("\"other\":\"",header_txt,"\"",sep="")
     }
 }
 
@@ -144,4 +150,19 @@ body_table_parse<-function(body_table){
     jsontxt<-paste("\"petition\":[",tabletxt,"]",sep="")
     
     return(jsontxt)
+}
+
+number_convert<-function(number_txt){
+    zh_number<-c("一","二","三","四","五","六","七","八","九","十","○")
+    ab_number<-c("1","2","3","4","5","6","7","8","9","","0")
+    
+    number.vector<-unlist(strsplit(number_txt,""))
+    for(i in 1:length(number.vector)){
+        if(number.vector[i] %in% zh_number){
+            number.vector[i]<-ab_number[grep(number.vector[i],zh_number)]
+        }
+    }
+    convert.number<-as.integer(paste(number.vector,collapse="",sep=""))
+    
+    return(convert.number)
 }
