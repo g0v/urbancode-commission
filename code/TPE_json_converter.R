@@ -6,8 +6,14 @@ json_convert<-function(result,target){
     
     tailer<-paste(result[[length(result)]])
     t.vector<-unique(na.omit(as.numeric(unlist(strsplit(tailer, "[^0-9]+")))))
-    t.hour<-t.vector[1]
-    t.minute<-t.vector[2]
+    if(length(t.vector)==0){
+        t.hour<-number_convert(gsub(".*\\((.*)時.*","\\1",tailer))
+        t.minute<-number_convert(gsub(".*時(.*)分.*","\\1",tailer))
+    } else {
+        t.hour<-t.vector[1]
+        t.minute<-t.vector[2]
+    }
+    
     e.time<-paste(t.hour,":",t.minute,sep="")
     json_header[2]<-paste(json_header[2],",\"end_time\":\"",e.time,"\"",sep="")
     
@@ -99,7 +105,7 @@ header_parse<-function(header_txt){
         jsontxt<-paste("\"attend_unit\":\"",attend_unit,"\"",sep="")
         return(jsontxt)
     } else {
-        jsontxt<-paste("\"other\":\"",header_txt,"\"",sep="")
+        jsontxt<-paste("\"",header_txt,"\":\"",header_txt,"\"",sep="")
     }
 }
 
@@ -120,11 +126,13 @@ body_txt_parse<-function(body_txt){
                 json.vector[i]<-paste("\"description\":[",description,"]",sep="")
             }
             else if(grepl("^決議(：|:)",names(body_txt[i]))){
-                resolution<-paste("\"",body_txt[[i]],"\"",sep="",collapse=",")
+                miss.txt<-gsub(".*(:|：)(.*?)","\\2",names(body_txt[i]))
+                resolution<-paste("\"",miss.txt,body_txt[[i]],"\"",sep="",collapse=",")
                 json.vector[i]<-paste("\"resolution\":[",resolution,"]",sep="")
             }
             else if(grepl("^附帶決議(：|:)",names(body_txt[i]))){
-                add_resolution<-paste("\"",body_txt[[i]],"\"",sep="",collapse=",")
+                miss.txt<-gsub(".*(:|：)(.*?)","\\2",names(body_txt[i]))
+                add_resolution<-paste("\"",miss.txt,body_txt[[i]],"\"",sep="",collapse=",")
                 json.vector[i]<-paste("\"add_resolution\":[",add_resolution,"]",sep="")
             }
             else {
@@ -154,15 +162,26 @@ body_table_parse<-function(body_table){
 
 number_convert<-function(number_txt){
     zh_number<-c("一","二","三","四","五","六","七","八","九","十","○")
-    ab_number<-c("1","2","3","4","5","6","7","8","9","","0")
+    ab_number<-c("1","2","3","4","5","6","7","8","9","*10+","0")
     
     number.vector<-unlist(strsplit(number_txt,""))
+    if("十" %in% number.vector){n.mode=1} else {n.mode=2}
     for(i in 1:length(number.vector)){
         if(number.vector[i] %in% zh_number){
             number.vector[i]<-ab_number[grep(number.vector[i],zh_number)]
         }
     }
-    convert.number<-as.integer(paste(number.vector,collapse="",sep=""))
+    if(n.mode==1){
+        number_paste<-paste(number.vector,collapse="",sep="")
+        if(grepl("^十",number_txt)){
+            number_paste<-paste("1",number_paste,sep="")
+        } else if (grepl("十$",number_txt)){
+            number_paste<-paste(number_paste,"0",sep="")
+        }
+        convert.number<-eval(parse(text=number_paste))
+    } else {
+        convert.number<-as.integer(paste(number.vector,collapse="",sep=""))
+    }
     
     return(convert.number)
 }
