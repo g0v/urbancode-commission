@@ -34,7 +34,9 @@ json_convert<-function(result,target){
         }
         
         name.tag<-""
-        if(grepl("報告事項",names(result[m]))){
+        if(grepl("宣讀",names(result[m]))){
+            name.tag<-"confirm_item"
+        } else if(grepl("報告事項",names(result[m]))){
             name.tag<-"report_item"
         } else if(grepl("審議事項|討論事項",names(result[m]))){
             name.tag<-"deliberate_item"
@@ -58,7 +60,7 @@ json_convert<-function(result,target){
 
 header_parse<-function(header_txt){
     if(Encoding(header_txt)=="UTF-8"){header_txt<-iconv(header_txt,"UTF-8","BIG5")}
-    if (grepl("(臺|台)北市都市計畫委員會第(.*)次委員(會場)?會議紀錄",header_txt)){
+    if (grepl("(臺|台)北市都市計畫委員會第(.*)次委員(會場)?(會議)+?紀錄",header_txt)){
         session<-number_convert(gsub(".*第( )?(.*)( )?次.*","\\2",header_txt))
         jsontxt<-paste("\"title\":\"",header_txt,"\",\"session\":",session,sep="")
         return(jsontxt)
@@ -75,6 +77,8 @@ header_parse<-function(header_txt){
         if(grepl("分",header_txt)){
             t.minute<-number_convert(gsub(".*時( )?(.*)( )?分.*?","\\2",header_txt))
             s.time<-paste(s.time,":",t.minute,sep="")
+        } else {
+            s.time<-paste(s.time,":00",sep="")
         }
         
         jsontxt<-paste("\"date\":\"",m.date,"\",\"start_time\":\"",s.time,"\"",sep="")
@@ -90,14 +94,19 @@ header_parse<-function(header_txt){
         jsontxt<-paste("\"chairman\":\"",chairman,"\"",sep="")
         return(jsontxt)
     }
-    else if (grepl("^彙整|^紀錄",header_txt)){
-        note_taker<-gsub("^彙整|^紀錄(：|:)(.*)$","\\2",header_txt)
+    else if (grepl("^彙整|^紀錄|^記錄",header_txt)){
+        note_taker<-gsub("^彙整|^紀錄|^記錄(：|:)(.*)$","\\2",header_txt)
         jsontxt<-paste("\"note_taker\":\"",note_taker,"\"",sep="")
         return(jsontxt)
     }
     else if (grepl("^出席委員",header_txt)){
         attend_committee<-gsub("^出席委員(：|:)(.*)$","\\2",header_txt)
         jsontxt<-paste("\"attend_committee\":\"",attend_committee,"\"",sep="")
+        return(jsontxt)
+    }
+    else if (grepl("^出席顧問",header_txt)){
+        attend_adviser<-gsub("^出席顧問(：|:)(.*)$","\\2",header_txt)
+        jsontxt<-paste("\"attend_adviser\":\"",attend_adviser,"\"",sep="")
         return(jsontxt)
     }
     else if (grepl("^列席單位",header_txt)){
@@ -117,7 +126,11 @@ body_txt_parse<-function(body_txt){
             value<-paste("\"",body_txt[[i]],"\"",sep="",collapse=",")
             json.vector[1]<-paste("\"null\":[",value,"]",sep="")
         } else {
-            if(grepl("事項",names(body_txt[i]))){
+            if(grepl("壹、",names(body_txt[i]))){
+                case<-gsub("(NA)?壹、(*)","\\2",body_txt[[i]][[1]])
+                json.vector[1]<-paste("\"case\":\"",case,"\"",sep="")
+            }
+            else if(grepl("事項",names(body_txt[i]))){
                 case<-gsub("案名(：|:)(*)","\\2",body_txt[[i]][[1]])
                 json.vector[1]<-paste("\"case\":\"",case,"\"",sep="")
             }
