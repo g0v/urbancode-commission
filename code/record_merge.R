@@ -15,7 +15,7 @@ record_merge<-function(region,start,end){
     
     for(i in 1:length(n.vector)){
         f.name<-paste("./record/TPEUP/JSON/",as.character(n.vector[i]),".json",sep="")
-        f.vector[i]<-paste(readLines(f.name),collapse="",sep="")
+        f.vector[i]<-paste(readLines(f.name,encoding="UTF-8"),collapse="",sep="")
         
     }
     
