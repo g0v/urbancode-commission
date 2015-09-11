@@ -28,7 +28,7 @@ tpup_parse1<-function(){
         if(grepl("indi.con",txt)) {link[i,2]<-paste(link[i,2],"_2",sep="")}        
     }
     
-    write.csv(link,"./record/tpup/tp_web_list.csv",row.names=FALSE)
+    write.csv(link,"./record/TPEUP/tp_web_list.csv",row.names=FALSE)
 }
 
 tpup_parse2<-function(){
@@ -37,7 +37,7 @@ tpup_parse2<-function(){
     library(XML)
     Sys.setlocale(category='LC_ALL', locale='C')
     
-    weblist<-read.csv("./record/tpup/tp_web_list.csv",stringsAsFactors = FALSE)
+    weblist<-read.csv("./record/TPEUP/tp_web_list.csv",stringsAsFactors = FALSE)
         
     filetype<-c()
     pb <- txtProgressBar(max = nrow(weblist), style = 3)
@@ -59,7 +59,7 @@ tpup_parse2<-function(){
     }
     weblist <- cbind(weblist,filetype)
     
-    write.csv(weblist,"./record/tpup/tpup_link_list.csv",row.names=FALSE)
+    write.csv(weblist,"./record/TPEUP/tpup_link_list.csv",row.names=FALSE)
 }
 
 checkfiletype <- function(txt){
@@ -79,7 +79,7 @@ tp_dlrecord<-function(csvfile){
     
     for(i in 1:nrow(link.list)){
         link<-GET(link.list[i,1])
-        filelocale<-paste("./record/tpup/raw/",link.list[i,2],".",link.list[i,3],sep="")
+        filelocale<-paste("./record/TPEUP/raw/",link.list[i,2],".",link.list[i,3],sep="")
         download.file(link$url,filelocale,mode="wb")
         
         setTxtProgressBar(pb, i)
