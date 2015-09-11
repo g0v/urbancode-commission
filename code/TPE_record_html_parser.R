@@ -35,6 +35,10 @@ record_parse<-function(target){
     zh_number<<-c("一","二","三","四","五","六","七","八","九","十")
     item_title<-c("報告事項","審議事項","臨時動議","討論事項")
     
+    if(!grepl("會議",parse.done[1,1])){
+        parse.done<-rbind(c("無前段",0,0),parse.done)
+    }
+    
     item.ind1<-c(1,grep(paste("^",zh_number_cap,"、",collapse="|",sep=""),parse.done[,1]),nrow(parse.done)+1)
     
     if(length(item.ind1)==2){
@@ -201,7 +205,16 @@ table_parse<-function(table.df){
     
     table.ex<-data.frame(item=txt_c1,content=txt_c2,stringsAsFactors = FALSE)
     
-    table.ex<-table.ex[-grep("^(-)?( )?([0-9])?([0-9])?([0-9])( )?(-)?$",table.ex[,2]),]
+    page.n<-grep("^第(.*)?頁$",table.ex[,2])
+    if(length(page.n)==0){
+        if(length(grep("^(-)?( )?([0-9])?([0-9])?([0-9])( )?(-)?$",table.ex[,2]))!=0){
+            table.ex<-table.ex[-grep("^(-)?( )?([0-9])?([0-9])?([0-9])( )?(-)?$",table.ex[,2]),]
+        }
+    } else {
+        table.ex<-table.ex[-grep("^第(.*)頁$",table.ex[,2]),]
+    }
+    
+    ##table.ex<-table.ex[-grep("^(-)?( )?([0-9])?([0-9])?([0-9])( )?(-)?$",table.ex[,2]),]
     if(length(grep("^NA",table.ex[,2]))>0){
         table.ex[grep("^NA",table.ex[,2]),2]<-NA
     }
