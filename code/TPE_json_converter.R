@@ -105,8 +105,9 @@ json_convert<-function(result,target){
     json_fulltxt<-paste("{",json_header,",",json_body,"}",sep="")
     
     f.name<-paste("./record/TPEUP/JSON/",target,".json",sep="")
-    iconv(json_fulltxt,"BIG5","UTF-8")
-    write(json_fulltxt,file=f.name)
+    file.create(f.name)
+    
+    writeLines(json_fulltxt,con=f.name,useBytes=TRUE)
 }
 
 header_parse<-function(header_txt){
