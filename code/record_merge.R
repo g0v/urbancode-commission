@@ -15,11 +15,14 @@ record_merge<-function(region,start,end){
     
     for(i in 1:length(n.vector)){
         f.name<-paste("./record/TPEUP/JSON/",as.character(n.vector[i]),".json",sep="")
-        f.vector[i]<-paste(readLines(f.name,encoding="UTF-8"),collapse="",sep="")
+        f.vector[i]<-paste(readLines(f.name),collapse="",sep="")
         
     }
     
     jsontxt<-paste("[",paste(f.vector,collapse=",",sep=""),"]",sep="")
     
-    write(jsontxt,file="./record/TPEUP/TPEUP_first_parse.json")
+    ex.name<-paste("./record/TPEUP/TPEUP_",start,"_",end,".json",sep="")
+    file.create(ex.name)
+    
+    writeLines(jsontxt,con=ex.name,useBytes=TRUE)
 }
