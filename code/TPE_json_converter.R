@@ -4,7 +4,7 @@ json_convert<-function(result,target){
     
     for (i in 1:length(result[[1]])){json_header[i]<-header_parse(result[[1]][i])}
     
-    if(length(grep("無前段",result[[1]]))>0){
+    if(length(grep("無前段",result[[1]]))==0){
         if(grepl("散會",result[length(result)])){
             tailer<-paste(result[[length(result)]])
             t.vector<-unique(na.omit(as.numeric(unlist(strsplit(tailer, "[^0-9]+")))))
