@@ -33,20 +33,22 @@ record_parse<-function(target){
     
     zh_number_cap<<-c("壹","貳","參","肆","伍","陸","柒","捌","玖","拾")
     zh_number<<-c("一","二","三","四","五","六","七","八","九","十")
-    item_title<-c("報告事項","審議事項","臨時動議","討論事項")
+    item_title<-c("報告事項","審議事項","臨時動議","討論事項","研議事項")
     
-    if(!grepl("會議",parse.done[1,1])){
+    if(!grepl("(紀|記)錄",parse.done[1,1])){
         parse.done<-rbind(c("無前段",0,0),parse.done)
     }
     
     item.ind1<-c(1,grep(paste("^",zh_number_cap,"、",collapse="|",sep=""),parse.done[,1]),nrow(parse.done)+1)
     
-    if(length(item.ind1)==2){
-        item.ind1<-c(1,grep(paste("^",item_title,"$",collapse="|",sep=""),parse.done[,1]),nrow(parse.done),nrow(parse.done)+1)
-    }
+    ##if(length(item.ind1)==2){
+        item.ind2<-c(1,grep(paste("^",item_title,"$",collapse="|",sep=""),parse.done[,1]),nrow(parse.done),nrow(parse.done)+1)
+    ##}
     
-    item.ind2<-grep("散會",parse.done[,1])
-    item.ind<-unique(c(item.ind1,item.ind2))
+    ##item.ind2<-grep("散會",parse.done[,1])    
+    item.ind3<-grep("散會",parse.done[,1])
+    
+    item.ind<-unique(c(item.ind1,item.ind2,item.ind3))
     item.ind<-item.ind[order(item.ind)]
     
     item.cnt<-length(item.ind)-1
@@ -95,7 +97,7 @@ html_parse<-function(f.path,mode){
 }
 
 item_parse<-function(item.df){
-    case.ind<-c(grep("^報告事項|^審議事項|^討論事項",item.df[,1]),nrow(item.df)+1)
+    case.ind<-c(grep("^報告事項|^審議事項|^討論事項|^研議事項",item.df[,1]),nrow(item.df)+1)
     case.cnt<-length(case.ind)-1
     
     case.list<-rep(list(NULL),case.cnt)
