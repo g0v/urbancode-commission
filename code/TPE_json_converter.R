@@ -4,80 +4,86 @@ json_convert<-function(result,target){
     
     for (i in 1:length(result[[1]])){json_header[i]<-header_parse(result[[1]][i])}
     
+    if(length(grep("無前段",result[[1]]))>0){
+        if(grepl("散會",result[length(result)])){
+            tailer<-paste(result[[length(result)]])
+            t.vector<-unique(na.omit(as.numeric(unlist(strsplit(tailer, "[^0-9]+")))))
+            if(length(t.vector)==0){
+                t.hour<-number_convert(gsub(".*(\\(|（)(.*)時.*","\\2",tailer))
+                if(grepl("分",tailer)){
+                    t.minute<-number_convert(gsub(".*時(.*)分.*","\\1",tailer))
+                } else {
+                    t.minute<-"00"
+                }
+            } else {
+                t.hour<-t.vector[1]
+                t.minute<-t.vector[2]
+            }
+            e.time<-paste(t.hour,":",t.minute,sep="")
+        } else {
+            e.time<-"無紀錄"
+        }
+        json_header[2]<-paste(json_header[2],",\"end_time\":\"",e.time,"\"",sep="")
+    }
+    
     ind<-c(grep("attend",json_header),(length(json_header)+1))
     
-    for (i in 1:(length(ind)-1)){
-        attend.type<-gsub("\"(.*)\":.*","\\1",json_header[ind[i]])
-        attend.list<-gsub(".*?:\"(.*?)\".*","\\1",json_header[ind[i]:(ind[i+1]-1)])
-        attend.list<-lapply(strsplit(attend.list," "),paste,collapse="\",\"",sep="")
-        attend.list<-paste("\"",attend.list,"\"",collapse=",",sep="")
-        attend.list<-gsub("委員|顧問","",attend.list)
-        
-        json_header[ind[i]]<-paste("\"",attend.type,"\":[",attend.list,"]",sep="")
-        if(ind[i+1]-ind[i]!=1){json_header[(ind[i]+1):(ind[i+1]-1)]<-NA}
+    if(length(ind)>2){
+        for (i in 1:(length(ind)-1)){
+            attend.type<-gsub("\"(.*)\":.*","\\1",json_header[ind[i]])
+            attend.list<-gsub(".*?:\"(.*?)\".*","\\1",json_header[ind[i]:(ind[i+1]-1)])
+            attend.list<-lapply(strsplit(attend.list," "),paste,collapse="\",\"",sep="")
+            attend.list<-paste("\"",attend.list,"\"",collapse=",",sep="")
+            attend.list<-gsub("委員|顧問","",attend.list)
+            
+            json_header[ind[i]]<-paste("\"",attend.type,"\":[",attend.list,"]",sep="")
+            if(ind[i+1]-ind[i]!=1){json_header[(ind[i]+1):(ind[i+1]-1)]<-NA}
+        }
     }
     
     json_header<-json_header[!is.na(json_header)]
     
-    if(!grepl("簽到表",json_header[grep("attend_unit",json_header)])){
-       a.unit.txt <-json_header[grep("attend_unit",json_header)]
-       unit.vector<-strsplit(gsub(".*\\[\"(.*?)\"\\]","\\1",a.unit.txt),"\",\"")[[1]]
-       if (length(grep("：",unit.vector))!=0){
-           u.mode=1
-           unit.ind<-c(grep("：",unit.vector),length(unit.vector)+1)
-       } else {
-           u.mode=2
-           unit.ind<-c(grep("小學$|中學$|國小$|國中$|院$|會$|處$|局$|所$|公司$|大隊$|代表$|銀行$",unit.vector),length(unit.vector)+1)
-       }
-       
-       ulist.vector<-vector(mode="character",length=(length(unit.ind)-1))
-       for(i in 1:(length(unit.ind)-1)){
-           unit.list<-unit.vector[unit.ind[i]:(unit.ind[i+1]-1)]
-           if(length(grep("未派員",unit.list))!=0){
-               if(u.mode==1){ulist.vector[i]<-paste(unit.list,collapse="",sep="")}
-               else if(u.mode==2){ulist.vector[i]<-paste(unit.list[1],"：",paste(unit.list[-1],collapse="",sep=""),sep="")}
+    if(length(grep("attend_unit",json_header))>0){
+        if(!grepl("簽到表|無紀錄",json_header[grep("attend_unit",json_header)])){
+           a.unit.txt <-json_header[grep("attend_unit",json_header)]
+           unit.vector<-strsplit(gsub(".*\\[\"(.*?)\"\\]","\\1",a.unit.txt),"\",\"")[[1]]
+           if (length(grep("：",unit.vector))!=0){
+               u.mode=1
+               unit.ind<-c(grep("：",unit.vector),length(unit.vector)+1)
            } else {
-               if(u.mode==1){ulist.vector[i]<-paste(unit.list,collapse="、",sep="")}
-               else if(u.mode==2){ulist.vector[i]<-paste(unit.list[1],"：",paste(unit.list[-1],collapse="、",sep=""),sep="")}
+               u.mode=2
+               unit.ind<-c(grep("小學$|中學$|國小$|國中$|院$|會$|處$|局$|所$|公司$|大隊$|代表$|銀行$",unit.vector),length(unit.vector)+1)
            }
            
-       }
-       ulist.split<-strsplit(ulist.vector,"：")
-       
-       for(i in 1:length(ulist.split)){
-           ulist.split[[i]][[1]]<-paste("\"unit\":\"",ulist.split[[i]][[1]],"\"",sep="")
-           if(length(ulist.split[[i]])>1){
-               ulist.split[[i]][[2]]<-paste("\"",strsplit(ulist.split[[i]][[2]],"、")[[1]],"\"",collapse=",",sep="")
-               ulist.split[[i]][[2]]<-paste("\"attendee\":[",ulist.split[[i]][[2]],"]",sep="")
-               ulist.split[[i]]<-paste("{",ulist.split[[i]][[1]],",",ulist.split[[i]][[2]],"}",sep="")
-           } else {
-               ulist.split[[i]]<-paste("{",ulist.split[[i]][[1]],"}",sep="")
+           ulist.vector<-vector(mode="character",length=(length(unit.ind)-1))
+           for(i in 1:(length(unit.ind)-1)){
+               unit.list<-unit.vector[unit.ind[i]:(unit.ind[i+1]-1)]
+               if(length(grep("未派員",unit.list))!=0){
+                   if(u.mode==1){ulist.vector[i]<-paste(unit.list,collapse="",sep="")}
+                   else if(u.mode==2){ulist.vector[i]<-paste(unit.list[1],"：",paste(unit.list[-1],collapse="",sep=""),sep="")}
+               } else {
+                   if(u.mode==1){ulist.vector[i]<-paste(unit.list,collapse="、",sep="")}
+                   else if(u.mode==2){ulist.vector[i]<-paste(unit.list[1],"：",paste(unit.list[-1],collapse="、",sep=""),sep="")}
+               }
+               
            }
-       }
-       
-       json_header[grep("attend_unit",json_header)]<-paste("\"attend_unit\":[",paste(unlist(ulist.split),collapse=",",sep=""),"]",sep="")
-    }
-       
-    if(grepl("散會",result[length(result)])){
-        tailer<-paste(result[[length(result)]])
-        t.vector<-unique(na.omit(as.numeric(unlist(strsplit(tailer, "[^0-9]+")))))
-        if(length(t.vector)==0){
-            t.hour<-number_convert(gsub(".*(\\(|（)(.*)時.*","\\2",tailer))
-            if(grepl("分",tailer)){
-                t.minute<-number_convert(gsub(".*時(.*)分.*","\\1",tailer))
-            } else {
-                t.minute<-"00"
-            }
-        } else {
-            t.hour<-t.vector[1]
-            t.minute<-t.vector[2]
+           ulist.split<-strsplit(ulist.vector,"：")
+           
+           for(i in 1:length(ulist.split)){
+               ulist.split[[i]][[1]]<-paste("\"unit\":\"",ulist.split[[i]][[1]],"\"",sep="")
+               if(length(ulist.split[[i]])>1){
+                   ulist.split[[i]][[2]]<-paste("\"",strsplit(ulist.split[[i]][[2]],"、")[[1]],"\"",collapse=",",sep="")
+                   ulist.split[[i]][[2]]<-paste("\"attendee\":[",ulist.split[[i]][[2]],"]",sep="")
+                   ulist.split[[i]]<-paste("{",ulist.split[[i]][[1]],",",ulist.split[[i]][[2]],"}",sep="")
+               } else {
+                   ulist.split[[i]]<-paste("{",ulist.split[[i]][[1]],"}",sep="")
+               }
+           }
+           
+           json_header[grep("attend_unit",json_header)]<-paste("\"attend_unit\":[",paste(unlist(ulist.split),collapse=",",sep=""),"]",sep="")
         }
-        e.time<-paste(t.hour,":",t.minute,sep="")
-    } else {
-        e.time<-"無紀錄"
     }
-        
-    json_header[2]<-paste(json_header[2],",\"end_time\":\"",e.time,"\"",sep="")
+     
     
     json_header<-paste(json_header,collapse=",")
     
@@ -102,6 +108,8 @@ json_convert<-function(result,target){
             name.tag<-"report_item"
         } else if(grepl("審議事項|討論事項",names(result[m]))){
             name.tag<-"deliberate_item"
+        } else if(grepl("研議事項",names(result[m]))){
+            name.tag<-"discuss_item"
         } else if(grepl("臨時動議",names(result[m]))){
             name.tag<-"extempore_item"
         } else {
@@ -128,6 +136,20 @@ header_parse<-function(header_txt){
             header_txt<-iconv(header_txt,"UTF-8","BIG5")
         }
     }
+    
+    if (header_txt=="無前段"){
+        header_tag<-c("date","start_time","end_time","location","chairman","note_taker")
+        attend_tag<-c("attend_committee","attend_adviser","attend_unit")
+        
+        title_txt<-paste("\"title\":\"臺北市都市計畫委員會第",target,"次委員會議紀錄\"",sep="")
+        session_txt<-paste("\"session\":",target,sep="")
+        header_txt<-paste("\"",header_tag,"\":\"無紀錄\"",collapse=",",sep="")
+        attend_txt<-paste("\"",attend_tag,"\":[\"無紀錄\"]",collapse=",",sep="")
+        
+        jsontxt<-paste(title_txt,session_txt,header_txt,attend_txt,sep=",")
+        return(jsontxt)
+    }
+        
     if (grepl("(臺|台)北市都市計(畫|劃)委員會第(.*)次委員(會場)?(會議)+?紀錄",header_txt)){
         session<-number_convert(gsub(".*第( )?(.*)( )?次.*","\\2",header_txt))
         jsontxt<-paste("\"title\":\"",header_txt,"\",\"session\":",session,sep="")
@@ -185,6 +207,7 @@ header_parse<-function(header_txt){
         return(jsontxt)
     } else {
         jsontxt<-paste("\"",header_txt,"\":\"",header_txt,"\"",sep="")
+        return(jsontxt)
     }
 }
 
