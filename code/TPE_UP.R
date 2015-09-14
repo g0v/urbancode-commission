@@ -106,23 +106,23 @@ tp_pdf_to_html<-function(){
 
 
 
-##tp_pdf_to_txt<-function(){
-##    library(tm)
-##    
-##    if(!dir.exists("./record/tpup/txt/")){
-##        dir.create("./record/tpup/txt/")
-##    }
-##    file_list <- dir("./record/tpup/raw/")
-##    
-##    for(i in 1:length(file_list)){
-##        file_type <- substr(file_list[i], nchar(file_list[i])-2, nchar(file_list[i]))
-##        
-##        if(file_type == "pdf"){
-##            uri <- paste("./record/tpup/raw/", file_list[i], sep="")
-##            pdf <- readPDF(control= list(text="-layout"))(elem = list(uri = uri), language="en")
-##            
-##            write(content(pdf), paste("./record/tpup/txt/tpup", gsub(".*?([0-9]+).*","\\1",file_list[i]), ".txt", sep=""))
-##        }
-##    }
-##}
+tp_pdf_to_txt<-function(){
+    library(tm)
+    
+    if(!dir.exists("./record/TPEUP/txt/")){
+        dir.create("./record/TPEUP/txt/")
+    }
+    file_list <- dir("./record/TPEUP/raw/")
+    
+    for(i in 1:length(file_list)){
+        file_type <- substr(file_list[i], nchar(file_list[i])-2, nchar(file_list[i]))
+        
+        if(file_type == "pdf"){
+            uri <- paste("./record/TPEUP/raw/", file_list[i], sep="")
+            pdf <- readPDF(control= list(text="-layout"))(elem = list(uri = uri), language="en")
+            
+            write(content(pdf), paste("./record/TPEUP/txt/tpup", gsub(".*?([0-9]+).*","\\1",file_list[i]), ".txt", sep=""))
+        }
+    }
+}
 
