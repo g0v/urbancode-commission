@@ -79,7 +79,8 @@ tp_dlrecord<-function(csvfile){
     
     for(i in 1:nrow(link.list)){
         link<-GET(link.list[i,1])
-        filelocale<-paste("./record/TPEUP/raw/",link.list[i,2],".",link.list[i,3],sep="")
+        link.name<-gsub("(tpup).*([0-9][0-9][0-9]).*","\\1\\2",link.list[i,2])
+        filelocale<-paste("./record/TPEUP/raw/",link.name,".",link.list[i,3],sep="")
         download.file(link$url,filelocale,mode="wb")
         
         setTxtProgressBar(pb, i)
