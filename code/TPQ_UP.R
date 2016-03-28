@@ -33,20 +33,22 @@ npup_parse1<-function(){
 
 np_dlrecord<-function(csvfile){
     library(httr)
+    library(RCurl)
+    Sys.setlocale(category='LC_ALL', locale='C')
     
     link.list<-read.csv(csvfile,stringsAsFactors=FALSE)
     
-    if (!dir.exists("./record/npup/raw/")) {
-        dir.create("./record/npup/")
-        dir.create("./record/npup/raw/")
+    if (!dir.exists("./record/TPQUP/raw/")) {
+        dir.create("./record/TPQUP/")
+        dir.create("./record/TPQUP/raw/")
     }
     
     pb <- txtProgressBar(max = nrow(link.list), style = 3)
     
     for(i in 1:nrow(link.list)){
         link<-GET(link.list[i,1])
-        filelocale<-paste("./record/npup/raw/",link.list[i,2],".",link.list[i,3],sep="")
-        download.file(link$url,filelocale,mode="wb")
+        filelocale<-paste0("./record/TPQUP/raw/",link.list[i,2],".",link.list[i,3])
+        download.file(link$url,filelocale,method="libcurl")
         
         setTxtProgressBar(pb, i)
     }    
