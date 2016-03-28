@@ -30,13 +30,13 @@ moiup<-function(){
     
     close(pb)
     
-    write.csv(link.list,"moiup_link_list.csv",row.names=FALSE)
+    write.csv(link.list,"./record/MOIUP/moiup_link_list.csv",row.names=FALSE)
 }
 
 moi_dlrecord<-function(){
     library(httr)
     
-    link.list<-read.csv("link_list.csv",stringsAsFactors=FALSE)
+    link.list<-read.csv("./record/MOIUP/moiup_link_list.csv",stringsAsFactors=FALSE)
     
     pb <- txtProgressBar(max = 840, style = 3)
     
