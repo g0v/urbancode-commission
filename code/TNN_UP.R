@@ -4,7 +4,8 @@ tnup_parse1<-function(){
     library(XML)
     Sys.setlocale(category='LC_ALL', locale='C')
     
-    get_url<-getURL("http://bud.tainan.gov.tw/doc/CityBoard_new2.aspx", encoding="utf-8")
+    get_url<-getURL("http://ud.tainan.gov.tw/UPBUD_sys/Conference?cid=76144DCD-AA57-431B-BAB7-A126E25E36D5", encoding="utf-8")
+    #get_url<-getURL("http://bud.tainan.gov.tw/doc/CityBoard_new2.aspx", encoding="utf-8")
     get_url_parse<-htmlParse(get_url, encoding="utf-8")
     
     item <- xpathSApply(get_url_parse,"//table[@class='p1']/tr/td/a",xmlValue)
