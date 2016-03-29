@@ -55,12 +55,31 @@ taoup_parse2<-function(){
     }
     colnames(link_list)<-c("filelink","filename")
     link_list$filetype<-"pdf"
-    #names(link_list[,1])<-NULL
-    #names(link_list[,2])<-NULL
     row.names(link_list)<-NULL
     
-    link_list<-link_list[!grepl("#top",link_list$filelink),]
-    link_list<-link_list[!grepl("javascript",link_list$filelink),]
+    link_list<-link_list[!grepl("#top|javascript",link_list$filelink),]
+    
+    link_list$filelink<-paste0("http://www.ud.taichung.gov.tw/",link_list$filelink)
+    link_list$filename<-gsub("\\([0-9]+[ ]+KB\\)$","",link_list$filename)
+    link_list$filename<-gsub("(上網)?.pdf| $","",link_list$filename)
+    link_list$filename<-gsub("上網(版)?","",link_list$filename)
     
     write.csv(link_list,"./record/TAOUP/taoup_link_list.csv",row.names=FALSE)
+}
+
+tao_dlrecord<-function(csvfile){
+    library(httr)
+    
+    link.list<-read.csv(csvfile,stringsAsFactors=FALSE)
+    
+    pb <- txtProgressBar(max = nrow(link.list), style = 3)
+    
+    for(i in 1:nrow(link.list)){
+        link<-GET(link.list$filelink[i])
+        link.name<-link.list$filename[i]
+        filelocale<-paste0("./record/TAOUP/raw/",link.name,".",link.list$filetype[i])
+        download.file(link$url,filelocale,mode="wb")
+        
+        setTxtProgressBar(pb, i)
+    }    
 }
