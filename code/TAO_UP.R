@@ -2,8 +2,7 @@ taoup_parse1<-function(){
     library(bitops)
     library(RCurl)
     library(XML)
-    #Sys.setlocale(category='LC_ALL', locale='C')
-
+    
     link_list<-c()
     
     for(i in 1:2){
@@ -13,7 +12,6 @@ taoup_parse1<-function(){
         list<-as.vector(xpathSApply(get_url_parse,"//div[@class='list']//ul//li//a",xmlAttrs))
         if(class(list)=="list") list<-rapply(list,c)
         link_list<-c(link_list,list)
-        #print(head(list))
     }
     
     names(link_list)<-NULL
@@ -34,7 +32,6 @@ taoup_parse2<-function(){
     
     weblist<-read.csv("./record/TAOUP/taoup_web_list.csv",stringsAsFactors = FALSE)
     
-    #filetype<-c()
     link_list<-data.frame(url=character(),name=character(),stringsAsFactors = FALSE)
     pb <- txtProgressBar(max = nrow(weblist), style = 3)
     
@@ -49,8 +46,7 @@ taoup_parse2<-function(){
         if(class(name)=="list") name<-rapply(name,c)
         
         link_list<-rbind(link_list,cbind(link[names(link)=="href"],name),stringsAsFactors = FALSE)
-        #xpathApply(get_url_parse, "//section[@class='cp']//a", xmlValue)
-        #iconv(rapply(xpathApply(get_url_parse, "//section[@class='cp']//a", xmlAttrs),c)[3],"utf-8","big5")
+        
         setTxtProgressBar(pb, i)
     }
     colnames(link_list)<-c("filelink","filename")
