@@ -18,11 +18,15 @@ MIT http://g0v.mit-license.org
 
 ## 資料存放說明
 ### /code
-R code 存放位置
+code 存放位置
 
 #### /code/crawler
+各都委會網站爬蟲
 需另外引入pdfparser
 需另外設置connect_mysql.php以連接資料庫(PDO方式連接)
+
+#### /code/txt2json_convert
+txt to json parser ver.1
 
 ### google drive
 委員會會議記錄txt存放位置： https://drive.google.com/drive/folders/0B1Y7b2xwFvAxcXpMSXNIWEg3MWs?usp=sharing
