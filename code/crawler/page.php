@@ -1,6 +1,6 @@
 <?php
 error_reporting(E_ALL);
-include 'toolbox.php';
+include_once 'toolbox.php';
 
 function TXG()
 {
@@ -48,32 +48,31 @@ function TPE()
 
 function TAO()
 {
-    global $page_upload, $gov, $url, $text;
+  global $page_upload, $gov, $url, $text;
 
-    $content = curl_simple('http://urdb.tycg.gov.tw/home.jsp?id=116&parentpath=0%2C2%2C7%2C87', ['page' => 1,
-        'pagesize'                                                                                          => 5000]);
-    $html = str_get_html($content);
-
-    $list = $html->find('#messageform', 0)->find('table', 0)->find('table', 1)->find('tr.text_04');
-    $i    = 0;
-    foreach ($list as $tr) {
-        if ($i == 1) {
-            $i = 0;
-            continue;
-        }
-        $i = 1;
-
-        $link  = $tr->find('td', 1)->find('a', 0);
-        $title = $link->plaintext;
-        if (preg_match('/桃園縣/', $title)) {
-            $gov = 'TAO_O';
-        } else {
-            $gov = 'TAO_N';
-        }
-        $url  = $link->href;
-        $text = $link->plaintext;
-        $page_upload->execute();
+  $content = curl_simple('http://urdb.tycg.gov.tw/home.jsp?id=116&parentpath=0%2C2%2C7%2C87', ['page' => 1, 'pagesize' => 5000]);
+  $html = str_get_html($content);
+  $list = $html->find('#messageform', 0)->find('div[id=home_content]', 0)->find('div[id=home_content00]', 0)->find('div#content_list', 0)->find('.list_list');
+  // print_r(count($list));
+  $i    = 0;
+  foreach ($list as $tr) {
+    if ($i == 1) {
+      $i = 0;
+      continue;
     }
+    $i = 1;
+
+    $link  = $tr->find('.list_title', 0)->find('a', 0);
+    $title = $link->plaintext;
+    if (preg_match('/桃園縣/', $title)) {
+      $gov = 'TAO_O';
+    } else {
+      $gov = 'TAO_N';
+    }
+    $url  = $link->href;
+    $text = $link->plaintext;
+    $page_upload->execute();
+  }
 }
 function KHH($type = 'new')
 {
@@ -260,7 +259,7 @@ function MIA($type = 'new')
             } else {
                 preg_match("/.*Back\('(.*?)',''\)\">" . $page_num . "/", $html->find('.ListTable_pager', 0), $match);
             }
-            if (!$match[1]) {
+            if (!isset($match[1])) {
                 break;
             }
             $__EVENTTARGET        = $match[1];
@@ -427,7 +426,7 @@ HSZ('all');
 YUN('all');
 NAN('all');
 MIA('all');
-LIE('all');
+// LIE('all');
 ILA('all');
 HUA('all');
 HSQ('all');

@@ -1,8 +1,13 @@
 <?php
-include 'connect_mysql.php';
-include 'simple_html_dom.php';
+error_reporting(E_ALL);
+include_once '../connect_mysql.php';
+include_once 'simple_html_dom.php';
 
-$page_upload = $db->prepare('INSERT IGNORE INTO page(gov,url,text) VALUES(:gov,:url,:text)');
+try {
+  $page_upload = $db->prepare('INSERT IGNORE INTO page(gov,url,text) VALUES(:gov,:url,:text)');
+} catch (PDOException $e) {
+    echo 'error: ' . $e->getMessage();
+}
 $page_upload->bindParam(':gov', $gov);
 $page_upload->bindParam(':text', $text);
 $page_upload->bindParam(':url', $url);
