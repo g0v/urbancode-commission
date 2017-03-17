@@ -64,4 +64,3 @@ function clean_empty($txt_array) {
   }
   return(array_values($txt_array));
 }
-?>
