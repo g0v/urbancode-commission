@@ -1,4 +1,4 @@
-<html>
+petition_case<html>
 <head>
 <meta charset="UTF-8">
 </head>
@@ -20,8 +20,8 @@
   // print_r($file_list);
 
   // record_parse('./txt/TPE/TPE_O_702_1.txt');
-  // for($cnt = 0; $cnt < count($file_list); $cnt++) {
-  for($cnt = 1707; $cnt < 2376; $cnt++) {
+  for($cnt = 0; $cnt < count($file_list); $cnt++) {
+  // for($cnt = 1707; $cnt < 2376; $cnt++) {
     record_parse($file_list[$cnt]);
   }
 
@@ -231,17 +231,17 @@ function record_parse($target_file) {
     $case_part = clean_empty(slice_my_array($case_txt, $part_index));
 
     //parse of content part ($case_part[0])
-    $case = '^案名：';
+    $case_title = '^案名：';
     $description = '^(案情概要)?說明：';
     $committee_speak = '^委員發言摘要：';
     $response = '^發展局回應：';
     $resolution = '^決議：';
     $add_resolution = '^附帶決議：';
     $attached ='^附件：';
-    $section_tag = array('case', 'description', 'committee_speak', 'response',
+    $section_tag = array('case_title', 'description', 'committee_speak', 'response',
                          'resolution', 'add_resolution', 'attached');
 
-    $session_title = "$case|$description|$resolution";
+    $session_title = "$case_title|$description|$resolution";
     $session_index = find_index($case_part[0], $session_title);
     $session_array = clean_empty(slice_my_array($case_part[0], $session_index));
 
@@ -280,13 +280,13 @@ function record_parse($target_file) {
 
   function petition_parse($petition_array) {
     $petition_count = '^案名|^編號';
-    $pet_reason = '陳( )?情( )?理( )?由';
-    $pet_suggest = '建議辦法';
-    $pet_response = '市府回覆(意見)?';
-    $pet_adhoc = '專案小組審查意見';
-    $pet_resolution = '(委( )?員( )?會( )?)?決( )?議';
-    $petition_title = "^$pet_reason|^$pet_suggest|^$pet_response|^$pet_resolution";
-    $petition_tag = array('pet_reason', 'pet_suggest', 'pet_response', 'pet_adhoc', 'pet_resolution');
+    $reason = '陳( )?情( )?理( )?由';
+    $suggest = '建議辦法';
+    $response = '市府回覆(意見)?';
+    $adhoc = '專案小組審查意見';
+    $resolution = '(委( )?員( )?會( )?)?決( )?議';
+    $petition_title = "^$reason|^$suggest|^$response|^$resolution";
+    $petition_tag = array('reason', 'suggest', 'response', 'adhoc', 'resolution');
 
     $petition_cnt = find_index($petition_array, $petition_count);
     $petition_case = clean_empty(slice_my_array($petition_array, $petition_cnt));
@@ -298,7 +298,7 @@ function record_parse($target_file) {
         $petition_case_name = combine_array_sentence(array($petition_case[$n]))[0];
         $petition_case_name = preg_replace('/^案名( )?/', '', $petition_case_name);
       } else if (preg_match('/^編號/', $petition_case[$n][0])) {
-        $petition_this['pet_case'] = $petition_case_name;
+        $petition_this['petition_case'] = $petition_case_name;
         $petition_index = find_index($petition_case[$n], $petition_title);
         $petition_section = clean_empty(slice_my_array($petition_case[$n], $petition_index));
 
@@ -307,13 +307,13 @@ function record_parse($target_file) {
             $first_line = $petition_section[$k][0];
             $name_pos = strpos($first_line, "陳情人");
 
-            $pet_num = substr($first_line, 0, $name_pos);
-            $pet_num = trim(preg_replace("/編號/", "", $pet_num));
-            $petition_this['pet_num'] = $pet_num;
+            $petition_num = substr($first_line, 0, $name_pos);
+            $petition_num = trim(preg_replace("/編號/", "", $petition_num));
+            $petition_this['petition_num'] = $petition_num;
 
-            $pet_name = substr($first_line, $name_pos);
-            $pet_name = trim(preg_replace("/陳情人/", "", $pet_name));
-            $petition_this['pet_name'] = $pet_name;
+            $name = substr($first_line, $name_pos);
+            $name = trim(preg_replace("/陳情人/", "", $name));
+            $petition_this['name'] = $name;
           } else {
             for($t = 0; $t < count($petition_tag); $t++) {
               $match = 1;
@@ -322,7 +322,7 @@ function record_parse($target_file) {
                 $petition_this["$petition_tag[$t]"] = section_parse($petition_section[$k]);
               } else {
                 if (!isset($match)) {
-                  $petition_this['pet_other_part'] = $petition_section[$k];
+                  $petition_this['other_part'] = $petition_section[$k];
                 }
               }
               unset($match);
