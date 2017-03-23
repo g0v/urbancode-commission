@@ -64,3 +64,37 @@ function clean_empty($txt_array) {
   }
   return(array_values($txt_array));
 }
+
+function findDate($txt_line) {
+  $txt_line = preg_replace("/ +/", "", $txt_line);
+  preg_match('/中華民國([0-9]+)年/', $txt_line, $m_year);
+  preg_match('/年([0-9]+)月/', $txt_line, $m_month);
+  preg_match('/月([0-9]+)日/', $txt_line, $m_day);
+  $m_date = trim($m_year[1]) . '/' . trim($m_month[1]) . '/' . trim($m_day[1]);
+  return($m_date);
+}
+
+function findTime($txt_line) {
+  if(preg_match("/時|：|:/", $txt_line)) {
+    $txt_line = preg_replace("/ +/", "", $txt_line);
+    $txt_line = preg_replace("/\(|\)/", "", $txt_line);
+    $txt_line = preg_split("/時|：|:/", $txt_line);
+  } else {
+    preg_match_all("!\d+!", $txt_line, $txt_line);
+    $txt_line = $txt_line[0];
+  }
+  if(count($txt_line) > 0) {
+    preg_match('/[0-9]+/', $txt_line[0], $t_hour);
+    $t_hour = $t_hour[0];
+    preg_match('/[0-9]+/', $txt_line[1], $t_minute);
+    if(count($t_minute) > 0) {
+      $t_minute = $t_minute[0];
+    } else {
+      $t_minute = '00';
+    }
+    $s_time = trim($t_hour) . ':' . trim($t_minute);
+    return($s_time);
+  } else {
+    return('00:00');
+  }
+}
