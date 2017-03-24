@@ -1,4 +1,20 @@
 <?php
+function file_list_array($dir = 'txt', $filter = 'all') {
+  $list = glob("./$dir/*");
+  foreach($list as $k => $file) {
+    if(!preg_match("/.$dir$/", $file)) {
+      unset($list[$k]);
+    }
+    if($filter != 'all') {
+      if(!preg_match("/$filter/", $file)) {
+        unset($list[$k]);
+      }
+    }
+  }
+  $list = array_values($list);
+  return($list);
+}
+
 function printarray($array) {
   foreach($array as $k => $v) {
     if(!is_array($v)) {
@@ -75,6 +91,7 @@ function findDate($txt_line) {
 }
 
 function findTime($txt_line) {
+
   if(preg_match("/時|：|:/", $txt_line)) {
     $txt_line = preg_replace("/ +/", "", $txt_line);
     $txt_line = preg_replace("/\(|\)/", "", $txt_line);
@@ -83,11 +100,17 @@ function findTime($txt_line) {
     preg_match_all("!\d+!", $txt_line, $txt_line);
     $txt_line = $txt_line[0];
   }
+  for($i = 0; $i < count($txt_line); $i++) {
+    if(!preg_match("/\d/", $txt_line[$i])) {
+      unset($txt_line[$i]);
+    }
+    $txt_line = array_values($txt_line);
+  }
   if(count($txt_line) > 0) {
     preg_match('/[0-9]+/', $txt_line[0], $t_hour);
     $t_hour = $t_hour[0];
-    preg_match('/[0-9]+/', $txt_line[1], $t_minute);
-    if(count($t_minute) > 0) {
+    if(isset($txt_line[1])) preg_match('/[0-9]+/', $txt_line[1], $t_minute);
+    if(isset($t_minute) && count($t_minute) > 0) {
       $t_minute = $t_minute[0];
     } else {
       $t_minute = '00';

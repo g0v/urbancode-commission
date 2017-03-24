@@ -5,21 +5,22 @@
 <body>
 <?php
   include_once('functions.php');
-  include_once('file_functions.php');
+  // include_once('file_functions.php');
 
-  $zh_number_cap = '壹|貳|參|肆|伍|陸|柒|捌|玖|拾';
-  $zh_number_low = '一|二|三|四|五|六|七|八|九|十';
+  $zh_number_cap = '壹|貳|參|肆|伍|陸|柒|捌|玖|拾|零';
+  $zh_number_low = '一|二|三|四|五|六|七|八|九|十|〇';
   $section_title = '宣讀|報告事項|審議事項|臨時動議|討論事項|研議事項';
 
   $file_list = file_list_array('txt', 'TPE');
-  // print_r($file_list);
 
-  // record_parse('./txt/TPE/TPE_O_655_1.txt');
+  // record_parse('./txt/TPE_O_569_1.txt');
   for($cnt = 0; $cnt < count($file_list); $cnt++) {
     record_parse($file_list[$cnt]);
   }
 
 function record_parse($target_file) {
+  global $zh_number_low;
+
   preg_match('~([O|N]_)(.*?)(_\d\.txt)~',$target_file, $target);
   $target = $target[2];
 
@@ -34,14 +35,17 @@ function record_parse($target_file) {
     $txtline = preg_replace("/︰/", "：", $txtline);
     $txtline = preg_replace("/錄/", "錄", $txtline);
     $txtline = preg_replace("/年/", "年", $txtline);
+    $txtline = preg_replace("/論/", "論", $txtline);
+    $txtline = preg_replace("/參/", "參", $txtline);
 
     //drop page number or empty lines
     if(strlen($txtline) != 0) {
       // $page_test = preg_replace("/ +/", "", $txtline);
       if((preg_match("/-[0-9]+-/", $txtline))) {
-      } else if((preg_match("/^第[0-9]+頁\/第[0-9]+頁$/", $txtline))) {
-      } else if((preg_match("/^第-[0-9]+-頁，共[0-9]+頁$/", $txtline))) {
+      } else if((preg_match("/^第[0-9]+頁\/(第|共)[0-9]+頁$/", $txtline))) {
+      } else if((preg_match("/^第-?[0-9]+-?頁，共[0-9]+頁$/", $txtline))) {
       } else if((preg_match("/^[0-9]+$/", $txtline))) {
+      } else if((preg_match("/^($zh_number_low)+$/", $txtline))) {
       } else {
         array_push($fulltxt, $txtline);
       }
@@ -90,7 +94,7 @@ function record_parse($target_file) {
       $item_array['confirm_item'] = $txt_part;
     } else if(preg_match("/審議事項/", $txt_part[0])) {
       $item_array['deliberate_item'] = $txt_part;
-    } else if(preg_match("/研議事項/", $txt_part[0])) {
+    } else if(preg_match("/研議事項|討論事項/", $txt_part[0])) {
       $item_array['discuss_item'] = $txt_part;
     } else if(preg_match("/臨時動議/", $txt_part[0])) {
       $item_array['extempore_item'] = $txt_part;
@@ -155,8 +159,9 @@ function record_parse($target_file) {
         $header_array['location'] = $location_txt[1];
       } else if(preg_match('/^主席|彙整/', $line_txt)) {
         //parse chairman
-        preg_match('/主席：(.*)(彙整|紀錄)/', $line_txt, $chairman_txt);
-        $chairman_txt = preg_replace('/兼主任委員/', '', $chairman_txt);
+        preg_match('/主席：(.*)(彙整|(紀|記)錄)/', $line_txt, $chairman_txt);
+        $chairman_txt = preg_replace("/兼(副)?主任委員/", '', $chairman_txt);
+        $chairman_txt = preg_replace("/彙整|(紀|記)錄/", '', $chairman_txt);
         $header_array['chairman'] = $chairman_txt[1];
 
         //parse note_taker
@@ -204,8 +209,8 @@ function record_parse($target_file) {
         unset($item_txt[0]);
         $item_txt = array_values($item_txt);
     }
-    //partition cases by "案名" or section titles (e.g. 審議事項二)
-    $case_index = find_index($item_txt, '^案名：[\s\S]|'.$section_title);
+    //partition cases by "案(名|由)" or section titles (e.g. 審議事項二)
+    $case_index = find_index($item_txt, '^案(名|由)：[\s\S]|'.$section_title);
     $case_array = slice_my_array($item_txt, $case_index);
 
     //parse case contents
@@ -228,7 +233,7 @@ function record_parse($target_file) {
     $case_part = clean_empty(slice_my_array($case_txt, $part_index));
 
     //parse of content part ($case_part[0])
-    $case_title = '^案名：';
+    $case_title = '^案(名|由)：';
     $description = '^(案情概要)?(說|說)明：';
     $committee_speak = '^委員發言摘要：';
     $response = '^發展局回應：';
@@ -276,7 +281,7 @@ function record_parse($target_file) {
   }
 
   function petition_parse($petition_array) {
-    $petition_count = '^案名|^編號';
+    $petition_count = '^案(名|由)|^編號';
     $reason = '陳情理由';
     $suggest = '建議辦法';
     $response = '市府回覆(意見)?';
@@ -291,9 +296,9 @@ function record_parse($target_file) {
     $petition_output = array();
 
     for($n = 1; $n < count($petition_case); $n++) {
-      if (preg_match('/^案名/', $petition_case[$n][0])) {
+      if (preg_match('/^案(名|由)/', $petition_case[$n][0])) {
         $petition_case_name = combine_array_sentence(array($petition_case[$n]))[0];
-        $petition_case_name = preg_replace('/^案名/', '', $petition_case_name);
+        $petition_case_name = preg_replace('/^案(名|由)/', '', $petition_case_name);
       } else if (preg_match('/^編號/', $petition_case[$n][0])) {
         if(isset($petition_case_name)) $petition_this['petition_case'] = $petition_case_name;
         $petition_index = find_index($petition_case[$n], $petition_title);
