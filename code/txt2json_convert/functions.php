@@ -1,4 +1,7 @@
 <?php
+$zh_number_cap = '壹|貳|參|肆|伍|陸|柒|捌|玖|拾|零';
+$zh_number_low = '一|二|三|四|五|六|七|八|九|十|〇';
+
 function file_list_array($dir = 'txt', $filter = 'all') {
   $list = glob("./$dir/*");
   foreach($list as $k => $file) {
@@ -81,43 +84,88 @@ function clean_empty($txt_array) {
   return(array_values($txt_array));
 }
 
+function zh2Num($numstr) {
+  global $zh_number_low;
+
+  $zh_number_array = explode("|", $zh_number_low);
+  $numstr_array = mbStringToArray($numstr);
+  $new_array = array();
+  foreach($numstr_array as $place => $numchar) {
+    if($numchar == '十') {
+      if($place == 0) {
+        $numchar = 1;
+      } else if($place == count($numstr_array)-1) {
+        $numchar = 0;
+      } else {
+        continue;
+      }
+    } else if(preg_match("/$zh_number_low/", $numchar)){
+      foreach($zh_number_array as $k => $value) {
+        if($numchar == $value) $numchar = $k+1;
+      }
+    }
+    array_unshift($new_array, $numchar);
+    $num = 0;
+    foreach($new_array as $pos => $int) {
+      $num = $num + $int * pow(10, $pos);
+    }
+  }
+  return($num);
+}
+
+function mbStringToArray ($string) {
+    $strlen = mb_strlen($string);
+    while ($strlen) {
+        $array[] = mb_substr($string,0,1,"UTF-8");
+        $string = mb_substr($string,1,$strlen,"UTF-8");
+        $strlen = mb_strlen($string);
+    }
+    if(isset($array)) return($array);
+}
+
 function findDate($txt_line) {
+  global $zh_number_low;
+
   $txt_line = preg_replace("/ +/", "", $txt_line);
-  preg_match('/中華民國([0-9]+)年/', $txt_line, $m_year);
-  preg_match('/年([0-9]+)月/', $txt_line, $m_month);
-  preg_match('/月([0-9]+)日/', $txt_line, $m_day);
-  $m_date = trim($m_year[1]) . '/' . trim($m_month[1]) . '/' . trim($m_day[1]);
+  preg_match('/中華民國(.*)年/', $txt_line, $m_year);
+  preg_match('/年(.*)月/', $txt_line, $m_month);
+  preg_match('/月(.*)日/', $txt_line, $m_day);
+  $m_date = array(trim($m_year[1]), trim($m_month[1]), trim($m_day[1]));
+
+  foreach($m_date as &$value) {
+    if(preg_match("/$zh_number_low/", $value)) {
+      $value = zh2Num($value);
+    }
+  }
+  $m_date = implode("/", $m_date);
   return($m_date);
 }
 
 function findTime($txt_line) {
+  global $zh_number_low;
+  $noon = (preg_match("/下午/", $txt_line))? 'after' : 'before';
+  $txt_line = preg_replace("/\(|\)/", "", $txt_line);
+  $s_time = preg_split("/時|：|:/", $txt_line);
+  $s_time = preg_replace("/(上|下)午|分/", "", $s_time);
 
-  if(preg_match("/時|：|:/", $txt_line)) {
-    $txt_line = preg_replace("/ +/", "", $txt_line);
-    $txt_line = preg_replace("/\(|\)/", "", $txt_line);
-    $txt_line = preg_split("/時|：|:/", $txt_line);
-  } else {
-    preg_match_all("!\d+!", $txt_line, $txt_line);
-    $txt_line = $txt_line[0];
-  }
-  for($i = 0; $i < count($txt_line); $i++) {
-    if(!preg_match("/\d/", $txt_line[$i])) {
-      unset($txt_line[$i]);
-    }
-    $txt_line = array_values($txt_line);
-  }
-  if(count($txt_line) > 0) {
-    preg_match('/[0-9]+/', $txt_line[0], $t_hour);
-    $t_hour = $t_hour[0];
-    if(isset($txt_line[1])) preg_match('/[0-9]+/', $txt_line[1], $t_minute);
-    if(isset($t_minute) && count($t_minute) > 0) {
-      $t_minute = $t_minute[0];
+  foreach($s_time as $k => &$txt) {
+    if(preg_match("/\d/", $txt)) {
+      preg_match_all("/\d+/", $txt, $match);
+      $txt = implode("", $match[0]);
+    } else if(preg_match("/$zh_number_low/", $txt)) {
+      preg_match_all("/$zh_number_low/", $txt, $match);
+      $txt = implode("", $match[0]);
+      $txt = zh2num($txt);
+    } else if($txt == "") {
+      $txt = '00';
     } else {
-      $t_minute = '00';
+      unset($s_time[$k]);
     }
-    $s_time = trim($t_hour) . ':' . trim($t_minute);
-    return($s_time);
-  } else {
-    return('00:00');
   }
+  $s_time = array_values($s_time);
+  if($noon == 'after' && $s_time[0] < 12) $s_time[0] += 12;
+  if(!isset($s_time[1])) $s_time[1] = "00";
+  $s_time = implode(":", $s_time);
+
+  return($s_time);
 }

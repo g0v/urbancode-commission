@@ -5,15 +5,12 @@
 <body>
 <?php
   include_once('functions.php');
-  // include_once('file_functions.php');
 
-  $zh_number_cap = '壹|貳|參|肆|伍|陸|柒|捌|玖|拾|零';
-  $zh_number_low = '一|二|三|四|五|六|七|八|九|十|〇';
   $section_title = '宣讀|報告事項|審議事項|臨時動議|討論事項|研議事項';
 
   $file_list = file_list_array('txt', 'TPE');
 
-  // record_parse('./txt/TPE_O_565_1.txt');
+  // record_parse('./txt/TPE_O_504_1.txt');
   for($cnt = 0; $cnt < count($file_list); $cnt++) {
     record_parse($file_list[$cnt]);
   }
@@ -40,7 +37,6 @@ function record_parse($target_file) {
 
     //drop page number or empty lines
     if(strlen($txtline) != 0) {
-      // $page_test = preg_replace("/ +/", "", $txtline);
       if((preg_match("/-[0-9]+-/", $txtline))) {
       } else if((preg_match("/^第[0-9]+頁\/(第|共)[0-9]+頁$/", $txtline))) {
       } else if((preg_match("/^第-?[0-9]+-?頁，共[0-9]+頁$/", $txtline))) {
@@ -49,7 +45,6 @@ function record_parse($target_file) {
       } else {
         array_push($fulltxt, $txtline);
       }
-      // unset($page_test);
     }
   }
   fclose($txtfile);
@@ -140,15 +135,9 @@ function record_parse($target_file) {
       if(preg_match("/^時間/", $line_txt)) {
         //parse date
         $header_array['date'] = findDate($line_txt);
-
         //parse start time
-        preg_match('/午(.*)時/', $line_txt, $t_hour);
-        if(preg_match('/分/', $line_txt)) {
-          preg_match('/.*時(.*)分/', $line_txt, $t_minute);
-        } else {
-          $t_minute = array('','00');
-        }
-        $s_time = trim($t_hour[1]) . ':' . trim($t_minute[1]);
+        preg_match('/(上|下)午(.*)$/', $line_txt, $s_time);
+        $s_time = findTime($s_time[0]);
         $header_array['start_time'] = $s_time;
       } else if(preg_match("/散會/", $line_txt)) {
         //parse end time
