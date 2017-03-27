@@ -13,7 +13,7 @@
 
   $file_list = file_list_array('txt', 'TPE');
 
-  // record_parse('./txt/TPE_O_569_1.txt');
+  // record_parse('./txt/TPE_O_565_1.txt');
   for($cnt = 0; $cnt < count($file_list); $cnt++) {
     record_parse($file_list[$cnt]);
   }
@@ -165,8 +165,8 @@ function record_parse($target_file) {
         $header_array['chairman'] = $chairman_txt[1];
 
         //parse note_taker
-        preg_match('/(彙整|紀錄)：(.*)$/', $line_txt, $note_taker_txt);
-        $header_array['note_taker'] = $note_taker_txt[2];
+        preg_match('/(彙整|(紀|記)錄)：(.*)$/', $line_txt, $note_taker_txt);
+        $header_array['note_taker'] = $note_taker_txt[3];
       } else if(preg_match('/出席委員/', $line_txt)) {
         //parse attend committe
         if(preg_match('/詳簽到表/', $line_txt)) {
@@ -220,7 +220,7 @@ function record_parse($target_file) {
         array_push($case_parsed, case_parse($case_array[$i]));
       }
     }
-    $item_txt = $case_parsed;
+    $item_txt = clean_empty($case_parsed);
   }
 
   function case_parse($case_txt) {
