@@ -18,17 +18,6 @@ function file_list_array($dir = 'txt', $filter = 'all') {
   return($list);
 }
 
-function printarray($array) {
-  foreach($array as $k => $v) {
-    if(!is_array($v)) {
-      echo '[' . $k . '] => ' . $v . '<br>';
-    } else {
-      echo '[' . $k . '] => ';
-      printarray($v);
-    }
-  }
-}
-
 function find_index($fulltxt, $title_string) {
   $index = array();
   foreach($fulltxt as $k => $v) {
@@ -137,6 +126,7 @@ function findDate($txt_line) {
       $value = zh2Num($value);
     }
   }
+  $m_date[0] += 1911;
   $m_date = implode("/", $m_date);
   return($m_date);
 }
