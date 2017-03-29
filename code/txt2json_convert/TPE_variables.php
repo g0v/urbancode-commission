@@ -1,6 +1,18 @@
 <?php
 include_once("class_definition.php");
 
+$noteTitle = '都市計畫委員會|(紀|記)錄';
+$petitionTableTitle = '臺北市都市計畫委員會公民或團體所提意見綜理表';
+$record_end = '散會';
+
+//定義會議meta||header標題
+$headerPack = new titlePack;
+$headerPack->time = '^時間';
+$headerPack->location = '地點';
+$headerPack->chair = '^主席|彙整';
+$headerPack->attend_committee = '出席委員';
+$headerPack->attend_unite = '列席單位';
+
 //定義會議記錄各段落大標
 $sectionPack = new titlePack;
 $sectionPack->read_item = '(宣讀|確認)上.*次';
@@ -22,7 +34,7 @@ $casePack->attached ='^附件：';
 
 //定義陳情案件段落標題
 $petitionPack = new titlePack;
-$petitionPack->petition_num = '^編號.*陳情人';//'^案(名|由)|^編號';
+$petitionPack->petition_num = '^編號.*陳情人';
 $petitionPack->reason = '^陳情理由';
 $petitionPack->suggest = '^建議辦法';
 $petitionPack->response = '^(申請單位|市府)回(覆|應)(意見)?';

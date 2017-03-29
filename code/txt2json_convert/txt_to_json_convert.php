@@ -3,7 +3,7 @@
   <meta charset="utf-8">
 </head>
 <body>
-<?php
+  <?php
   include_once('functions.php');
 
   $filter = 'TPE';
@@ -19,95 +19,98 @@
     record_parse($file_list[$cnt]);
   }
 
-function record_parse($target_file) {
-  global $zh_number_low;
+  function record_parse($target_file) {
+    global $zh_number_low;
+    global $noteTitle;
 
-  preg_match('~([O|N]_)(.*?)(_\d\.txt)~',$target_file, $target);
-  $target = $target[2];
+    preg_match('~([O|N]_)(.*?)(_\d\.txt)~',$target_file, $target);
+    $target = $target[2];
 
-  $txtfile = fopen($target_file, 'r');
-  $fulltxt = array();
+    $txtfile = fopen($target_file, 'r');
+    $fulltxt = array();
 
-  //read in txt lines
-  while(!feof($txtfile)) {
-    $txtline = trim(fgets($txtfile));
-    $txtline = mb_convert_encoding($txtline, "UTF-8");
-    //置換中文異體字
-    $txtline = preg_replace("/ +/", "", $txtline);
-    $txtline = preg_replace("/︰/", "：", $txtline);
-    $txtline = preg_replace("/錄/", "錄", $txtline);
-    $txtline = preg_replace("/年/", "年", $txtline);
-    $txtline = preg_replace("/論/", "論", $txtline);
-    $txtline = preg_replace("/參/", "參", $txtline);
-    $txtline = preg_replace("/理/", "理", $txtline);
+    //read in txt lines
+    while(!feof($txtfile)) {
+      $txtline = trim(fgets($txtfile));
+      $txtline = mb_convert_encoding($txtline, "UTF-8");
+      //置換中文異體字
+      $txtline = preg_replace("/ +/", "", $txtline);
+      $txtline = preg_replace("/︰/", "：", $txtline);
+      $txtline = preg_replace("/錄/", "錄", $txtline);
+      $txtline = preg_replace("/年/", "年", $txtline);
+      $txtline = preg_replace("/論/", "論", $txtline);
+      $txtline = preg_replace("/參/", "參", $txtline);
+      $txtline = preg_replace("/理/", "理", $txtline);
 
-    //drop page number or empty lines
-    if(strlen($txtline) != 0) {
-      if((preg_match("/-[0-9]+-/", $txtline))) {
-      } else if((preg_match("/^第-?[0-9]+-?頁(\/)?(，)?(第|共)[0-9]+頁$/", $txtline))) {
-      } else if((preg_match("/^[0-9]+$/", $txtline))) {
-      } else if((preg_match("/^($zh_number_low)+$/", $txtline))) {
-      } else {
-        array_push($fulltxt, $txtline);
+      //drop page number or empty lines
+      if(strlen($txtline) != 0) {
+        if((preg_match("/-[0-9]+-/", $txtline))) {
+        } else if((preg_match("/^第-?[0-9]+-?頁(\/)?(，)?(第|共)[0-9]+頁$/", $txtline))) {
+        } else if((preg_match("/^[0-9]+$/", $txtline))) {
+        } else if((preg_match("/^($zh_number_low)+$/", $txtline))) {
+        } else {
+          array_push($fulltxt, $txtline);
+        }
       }
     }
+    fclose($txtfile);
+
+    if(empty($fulltxt)) return("empty file: $target_file");
+
+    //basic parameters setup
+    global $zh_number_cap;
+    global $zh_number_low;
+    global $sectionPack;
+    global $section_title;
+    global $record_end;
+
+    //identify item index position
+    $section_index = find_index($fulltxt, "(($zh_number_cap).*.($section_title))|$record_end");
+    foreach($fulltxt as $k => $v) {
+      if(preg_match("/$record_end/", $v)) {$end_index = $k;}
+    }
+
+    if(!isset($end_index)) $end_index = count($fulltxt)-1;
+    //slice txt into parts by index position
+    $parse_txt = slice_my_array($fulltxt, $section_index);
+    //parse commission note header (if exist)
+    $item_start = 0; //save start position of items in $parse_txt
+    if(preg_match("/$noteTitle/", $parse_txt[0][0])) {
+      array_push($parse_txt[0], $fulltxt[$end_index]);
+      $header_array = header_parse($parse_txt[0], $target);
+      $item_start = 1; //if header exist, set item start as $parse_txt[1]
+    }
+
+    $item_array = array();
+    foreach($parse_txt as $k => $txt_part) {
+      if($k < $item_start) continue;
+      $tag = $sectionPack->pregTag($txt_part[0]);
+      if($tag != 'not found') $item_array[$tag] = $txt_part;
+    }
+    array_walk($item_array, 'item_parse');
+
+    foreach($item_array as &$item) $item = clean_empty($item);
+
+    $json_array = array();
+    if(isset($header_array)) {
+      foreach ($header_array as $key => $value) $json_array[$key] = $value;
+    }
+    if(isset($item_array)) {
+      foreach ($item_array as $key => $value) $json_array[$key] = $value;
+    }
+
+    $output_file = preg_replace("/txt/", "json", $target_file);
+    echo $output_file."<br>";
+
+    $json_txt = json_encode($json_array, JSON_UNESCAPED_UNICODE);
+
+    $output_json = fopen($output_file, "w");
+    fwrite($output_json, $json_txt);
   }
-  fclose($txtfile);
-
-  if(empty($fulltxt)) return("empty file: $target_file");
-
-  //basic parameters setup
-  global $zh_number_cap;
-  global $zh_number_low;
-  global $sectionPack;
-  global $section_title;
-  $record_end = '散會';
-
-  //identify item index position
-  $section_index = find_index($fulltxt, "(($zh_number_cap).*.($section_title))|$record_end");
-  foreach($fulltxt as $k => $v) {
-    if(preg_match("/散會/", $v)) {$end_index = $k;}
-  }
-
-  if(!isset($end_index)) $end_index = count($fulltxt)-1;
-  //slice txt into parts by index position
-  $parse_txt = slice_my_array($fulltxt, $section_index);
-  //parse commission note header (if exist)
-  $item_start = 0; //save start position of items in $parse_txt
-  if(preg_match("/都市計畫委員會|(紀|記)錄/", $parse_txt[0][0])) {
-    array_push($parse_txt[0], $fulltxt[$end_index]);
-    $header_array = header_parse($parse_txt[0], $target);
-    $item_start = 1; //if header exist, set item start as $parse_txt[1]
-  }
-
-  $item_array = array();
-  foreach($parse_txt as $k => $txt_part) {
-    if($k < $item_start) continue;
-    $tag = $sectionPack->pregTag($txt_part[0]);
-    if($tag != 'not found') $item_array[$tag] = $txt_part;
-  }
-  array_walk($item_array, 'item_parse');
-
-  foreach($item_array as &$item) $item = clean_empty($item);
-
-  $json_array = array();
-  if(isset($header_array)) {
-    foreach ($header_array as $key => $value) $json_array[$key] = $value;
-  }
-  if(isset($item_array)) {
-    foreach ($item_array as $key => $value) $json_array[$key] = $value;
-  }
-
-  $output_file = preg_replace("/txt/", "json", $target_file);
-  echo $output_file."<br>";
-
-  $json_txt = json_encode($json_array, JSON_UNESCAPED_UNICODE);
-
-  $output_json = fopen($output_file, "w");
-  fwrite($output_json, $json_txt);
-}
 
   function header_parse($header_txt, $target) {
+    global $record_end;
+
     $header_array = array();
 
     $header_array['title'] = $header_txt[0];
@@ -124,7 +127,7 @@ function record_parse($target_file) {
         preg_match('/(上|下)午(.*)$/', $line_txt, $s_time);
         $s_time = findTime($s_time[0]);
         $header_array['start_time'] = $s_time;
-      } else if(preg_match("/散會/", $line_txt)) {
+      } else if(preg_match("/$record_end/", $line_txt)) {
         //parse end time
         $header_array['end_time'] = findTime($line_txt);
       } else if(preg_match("/地點/", $line_txt)) {
@@ -189,14 +192,13 @@ function record_parse($target_file) {
     global $section_title;
     //處理 宣讀|確認 上次會議記錄部分
     if(preg_match("/(宣讀|確認)上.*次/", $item_txt[0])) {
-      $item_txt = array(array('case_title' => $item_txt[0],
-                              'description' => section_parse($item_txt)));
+      $item_txt = array(array('case_title' => $item_txt[0], 'description' => section_parse($item_txt)));
       return;
     }
     //if the first line of item_txt if the title of sections, unset it
     if(preg_match("/$section_title/", $item_txt[0])) {
-        unset($item_txt[0]);
-        $item_txt = array_values($item_txt);
+      unset($item_txt[0]);
+      $item_txt = array_values($item_txt);
     }
     //partition cases by "案(名|由)" or section titles (e.g. 審議事項二)
     $case_index = find_index($item_txt, '^案(名|由)：[\s\S]|'.$section_title);
@@ -213,8 +215,9 @@ function record_parse($target_file) {
     global $zh_number_low;
     global $section_title;
     global $casePack;
+    global $petitionTableTitle;
     //partition $case_txt into two - content and petition parts
-    $part_index = find_index($case_txt, '臺北市都市計畫委員會公民或團體所提意見綜理表');
+    $part_index = find_index($case_txt, "$petitionTableTitle");
     array_push($part_index, count($case_txt));
     $case_part = clean_empty(slice_my_array($case_txt, $part_index));
     //parse of content part ($case_part[0])
@@ -241,10 +244,11 @@ function record_parse($target_file) {
 
   function petition_parse($petition_array) {
     global $petitionPack;
+    global $petitionTableTitle;
     $petition_title = $petitionPack->getTitleString();
     $petition_tag = array('reason', 'suggest', 'response', 'adhoc', 'resolution');
 
-    if(preg_match("/臺北市都市計畫委員會公民或團體所提意見綜理表/", $petition_array[0])) {
+    if(preg_match("/$petitionTableTitle/", $petition_array[0])) {
       unset($petition_array[0]);
       $petition_array = array_values($petition_array);
     }
@@ -313,6 +317,6 @@ function record_parse($target_file) {
 
     return($section_array);
   }
-?>
+  ?>
 </body>
 </html>
