@@ -10,8 +10,6 @@ $sectionPack->deliberate_item = '審議事項$';
 $sectionPack->dicuss_item = '(研議|討論)事項$';
 $sectionPack->extempore_item = '臨時動議$';
 
-$section_title = $sectionPack->getTitleString();
-
 //定義各案件小段落標題
 $casePack = new titlePack;
 $casePack->case_title = '^案(名|由)：';
@@ -22,4 +20,11 @@ $casePack->resolution = '^決議(：)?';
 $casePack->add_resolution = '^附帶決議(：)?';
 $casePack->attached ='^附件：';
 
-$session_title = $casePack->getTitleString();
+//定義陳情案件段落標題
+$petitionPack = new titlePack;
+$petitionPack->petition_num = '^編號.*陳情人';//'^案(名|由)|^編號';
+$petitionPack->reason = '^陳情理由';
+$petitionPack->suggest = '^建議辦法';
+$petitionPack->response = '^(申請單位|市府)回(覆|應)(意見)?';
+$petitionPack->adhoc = '^專案小組(審查意見)?';
+$petitionPack->resolution = '^(委員會)?決議';

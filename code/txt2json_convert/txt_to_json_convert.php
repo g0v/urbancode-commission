@@ -8,10 +8,11 @@
 
   $filter = 'TPE';
   include_once($filter."_variables.php");
+  $section_title = $sectionPack->getTitleString();
 
   $file_list = file_list_array('txt', $filter);
 
-  // record_parse('./txt/TPE_O_702_1.txt');
+  // record_parse('./txt/TPE_O_633_1.txt');
   for($cnt = 0; $cnt < count($file_list); $cnt++) {
     //TPE_O_657 and TPE_O_632 contains major issues
     if($filter = 'TPE' && preg_match("/TPE_O_(657|632)/", $file_list[$cnt])) continue;
@@ -31,6 +32,7 @@ function record_parse($target_file) {
   while(!feof($txtfile)) {
     $txtline = trim(fgets($txtfile));
     $txtline = mb_convert_encoding($txtline, "UTF-8");
+    //置換中文異體字
     $txtline = preg_replace("/ +/", "", $txtline);
     $txtline = preg_replace("/︰/", "：", $txtline);
     $txtline = preg_replace("/錄/", "錄", $txtline);
@@ -52,9 +54,7 @@ function record_parse($target_file) {
   }
   fclose($txtfile);
 
-  if(empty($fulltxt)) {
-    return("empty file: $target_file");
-  }
+  if(empty($fulltxt)) return("empty file: $target_file");
 
   //basic parameters setup
   global $zh_number_cap;
@@ -69,7 +69,7 @@ function record_parse($target_file) {
     if(preg_match("/散會/", $v)) {$end_index = $k;}
   }
 
-  if(!isset($end_index)) {$end_index = count($fulltxt)-1;}
+  if(!isset($end_index)) $end_index = count($fulltxt)-1;
   //slice txt into parts by index position
   $parse_txt = slice_my_array($fulltxt, $section_index);
   //parse commission note header (if exist)
@@ -88,20 +88,14 @@ function record_parse($target_file) {
   }
   array_walk($item_array, 'item_parse');
 
-  foreach($item_array as &$item) {
-    $item = clean_empty($item);
-  }
+  foreach($item_array as &$item) $item = clean_empty($item);
 
   $json_array = array();
   if(isset($header_array)) {
-    foreach ($header_array as $key => $value) {
-      $json_array[$key] = $value;
-    }
+    foreach ($header_array as $key => $value) $json_array[$key] = $value;
   }
   if(isset($item_array)) {
-    foreach ($item_array as $key => $value) {
-      $json_array[$key] = $value;
-    }
+    foreach ($item_array as $key => $value) $json_array[$key] = $value;
   }
 
   $output_file = preg_replace("/txt/", "json", $target_file);
@@ -111,7 +105,6 @@ function record_parse($target_file) {
 
   $output_json = fopen($output_file, "w");
   fwrite($output_json, $json_txt);
-
 }
 
   function header_parse($header_txt, $target) {
@@ -163,15 +156,11 @@ function record_parse($target_file) {
           $header_array['attend_unit'] = $attend_unit_txt;
         }
       } else {
-        if($i == count($header_txt)-1) {
-          $header_array['end_time'] = findTime($line_txt);
-        }
+        if($i == count($header_txt)-1) $header_array['end_time'] = findTime($line_txt);
       }
     }
     foreach($header_array as $k => &$value) {
-      if(!is_array($value)) {
-        $value = trim($value);
-      }
+      if(!is_array($value)) $value = trim($value);
     }
     return($header_array);
   }
@@ -183,12 +172,12 @@ function record_parse($target_file) {
     // if this line is not complete, return 0
     if(count($chairman_txt) == 0) return(0);
 
-    $chairman_txt = preg_replace("/兼(副)?主任委員/", '', $chairman_txt);
+    $chairman_txt = preg_replace("/(兼)?(副)?主任委員/", '', $chairman_txt);
     $chairman_txt = preg_replace("/彙整|(紀|記)錄/", '', $chairman_txt);
     $chair = $chairman_txt[1];
     //parse note_taker
     preg_match('/(彙整|(紀|記)錄)(：|:)(.*)$/', $line_txt, $note_taker_txt);
-    $note_taker_txt = preg_replace("/技士/", '', $note_taker_txt);
+    $note_taker_txt = preg_replace("/技士|組長/", '', $note_taker_txt);
     $note_taker = $note_taker_txt[4];
 
     return(array($chair,$note_taker));
@@ -215,9 +204,7 @@ function record_parse($target_file) {
     //parse case contents
     $case_parsed = array();
     for($i = 0; $i < count($case_array); $i++) {
-      if(count($case_array[$i]) > 0) {
-        array_push($case_parsed, case_parse($case_array[$i]));
-      }
+      if(count($case_array[$i]) > 0) array_push($case_parsed, case_parse($case_array[$i]));
     }
     $item_txt = clean_empty($case_parsed);
   }
@@ -231,9 +218,6 @@ function record_parse($target_file) {
     array_push($part_index, count($case_txt));
     $case_part = clean_empty(slice_my_array($case_txt, $part_index));
     //parse of content part ($case_part[0])
-    $section_tag = array('case_title', 'description', 'committee_speak', 'response',
-                         'resolution', 'add_resolution', 'attached');
-
     $session_title = $casePack->getTitleString();
     $session_index = find_index($case_part[0], $session_title);
     $session_array = clean_empty(slice_my_array($case_part[0], $session_index));
@@ -251,65 +235,61 @@ function record_parse($target_file) {
       }
     }
     //parse petition contents
-    if(isset($case_part[1])) {
-      $case_output['petition'] = petition_parse($case_part[1]);
-    }
+    if(isset($case_part[1])) $case_output['petition'] = petition_parse($case_part[1]);
     return($case_output);
   }
 
   function petition_parse($petition_array) {
-    $petition_count = '^案(名|由)|^編號';
-    $reason = '陳情理由';
-    $suggest = '建議辦法';
-    $response = '市府回(覆|應)(意見)?';
-    $adhoc = '專案小組審查意見';
-    $resolution = '(委員會)?決議';
-    $petition_title = "^$reason|^$suggest|^$response|^$resolution";
+    global $petitionPack;
+    $petition_title = $petitionPack->getTitleString();
     $petition_tag = array('reason', 'suggest', 'response', 'adhoc', 'resolution');
 
-    $petition_cnt = find_index($petition_array, $petition_count);
+    if(preg_match("/臺北市都市計畫委員會公民或團體所提意見綜理表/", $petition_array[0])) {
+      unset($petition_array[0]);
+      $petition_array = array_values($petition_array);
+    }
+    //依'編號'切割petition array
+    $petition_cnt = find_index($petition_array, $petitionPack->petition_num);
     $petition_case = clean_empty(slice_my_array($petition_array, $petition_cnt));
-
-    $petition_output = array();
-
-    for($n = 1; $n < count($petition_case); $n++) {
-      if (preg_match('/^案(名|由)/', $petition_case[$n][0])) {
-        $petition_case_name = combine_array_sentence(array($petition_case[$n]))[0];
-        $petition_case_name = preg_replace('/^案(名|由)/', '', $petition_case_name);
-      } else if (preg_match('/^編號/', $petition_case[$n][0])) {
-        if(isset($petition_case_name)) $petition_this['petition_case'] = $petition_case_name;
-        $petition_index = find_index($petition_case[$n], $petition_title);
-        $petition_section = clean_empty(slice_my_array($petition_case[$n], $petition_index));
-
-        for($k = 0; $k < count($petition_section); $k++) {
-          if (preg_match('/^編號/', $petition_section[$k][0])) {
-            $first_line = $petition_section[$k][0];
-            $name_pos = strpos($first_line, "陳情人");
-
-            $petition_num = substr($first_line, 0, $name_pos);
-            $petition_num = trim(preg_replace("/編號/", "", $petition_num));
-            $petition_this['petition_num'] = $petition_num;
-
-            $name = substr($first_line, $name_pos);
-            $name = trim(preg_replace("/陳情人/", "", $name));
-            $petition_this['name'] = $name;
-          } else {
-            for($t = 0; $t < count($petition_tag); $t++) {
-              $match = 1;
-              $thistag = $$petition_tag[$t];
-              if (preg_match("/^$thistag/", $petition_section[$k][0])) {
-                $petition_this["$petition_tag[$t]"] = section_parse($petition_section[$k]);
-              } else {
-                if (!isset($match)) {
-                  $petition_this['other_part'] = $petition_section[$k];
-                }
-              }
-              unset($match);
-            }
+    //如果petition_case[0]是案名，存入petition_header
+    if(preg_match("/案名/", $petition_case[0][0])) {
+      $petition_header = $petition_case[0];
+      unset($petition_case[0]);
+    }
+    //移除陳情文中的案名line
+    if(isset($petition_header)) {
+      foreach($petition_case as &$petition_active) {
+        foreach($petition_active as $active_k => $active_line) {
+          foreach($petition_header as $header_k => $header_line) {
+            if($active_line === $header_line) unset($petition_active[$active_k]);
           }
         }
-      } else {
-        $petition_this['petition_other_tag'] = $petition_case[$n];
+        $petition_active = array_values($petition_active);
+      }
+      $petition_case_name = combine_array_sentence(array($petition_header))[0];
+    }
+
+    $petition_output = array();
+    foreach($petition_case as $k => $peition) {
+      if(isset($petition_case_name)) $petition_this['petition_case'] = $petition_case_name;
+      $petition_index = find_index($peition, $petition_title);
+      $petition_section = clean_empty(slice_my_array($peition, $petition_index));
+
+      foreach($petition_section as $single_petition) {
+        if (preg_match("/$petitionPack->petition_num/", $single_petition[0])) {
+          $first_line = $single_petition[0];
+          $name_pos = strpos($first_line, "陳情人");
+          $petition_num = substr($first_line, 0, $name_pos);
+          $petition_num = trim(preg_replace("/$petitionPack->petition_num/", "", $petition_num));
+          $petition_this['petition_num'] = $petition_num;
+          $petition_name = substr($first_line, $name_pos);
+          $petition_name = trim(preg_replace("/陳情人/", "", $petition_name));
+          $petition_this['name'] = $petition_name;
+        } else {
+          $tag = $petitionPack->pregTag($single_petition[0]);
+          if ($tag === "petition_num|name") continue;
+          if ($tag != 'not found') $petition_this[$tag] = section_parse($single_petition);
+        }
       }
       if(isset($petition_this)) {
         array_push($petition_output, $petition_this);
