@@ -1,5 +1,5 @@
 <?php
-Class titlePack {
+class titlePack {
   function getTitleString() {
     $var_array = get_object_vars($this);
     $tag_array = array();
@@ -18,5 +18,11 @@ Class titlePack {
     }
     $found = isset($found)? $found : 'not found';
     return($found);
+  }
+}
+
+class jsonArray {
+  function loadInto($array) {
+    foreach ($array as $key => $value) $this->$key = $value;
   }
 }

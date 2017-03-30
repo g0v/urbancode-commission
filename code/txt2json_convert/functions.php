@@ -75,6 +75,8 @@ function clean_empty($txt_array) {
 
 function zh2Num($numstr) {
   global $zh_number_low;
+  $zh_number_tenfold = array("廿","卅","卌");
+  $zh_tenfold_string = implode("|", $zh_number_tenfold);
 
   $zh_number_array = explode("|", $zh_number_low);
   $numstr_array = mbStringToArray($numstr);
@@ -87,6 +89,10 @@ function zh2Num($numstr) {
         $numchar = 0;
       } else {
         continue;
+      }
+    } else if(preg_match("/$zh_tenfold_string/", $numchar)) {
+      foreach($zh_number_tenfold as $k => $value) {
+        if($numchar == $value) $numchar = ($k+2) * 10;
       }
     } else if(preg_match("/$zh_number_low/", $numchar)){
       foreach($zh_number_array as $k => $value) {
@@ -114,8 +120,6 @@ function mbStringToArray ($string) {
 
 function findDate($txt_line) {
   global $zh_number_low;
-
-  $txt_line = preg_replace("/ +/", "", $txt_line);
   preg_match('/中華民國(.*)年/', $txt_line, $m_year);
   preg_match('/年(.*)月/', $txt_line, $m_month);
   preg_match('/月(.*)日/', $txt_line, $m_day);
@@ -133,17 +137,22 @@ function findDate($txt_line) {
 
 function findTime($txt_line) {
   global $zh_number_low;
+  $zh_number = $zh_number_low."|廿|卅|卌";
+
   $noon = (preg_match("/下午/", $txt_line))? 'after' : 'before';
-  $txt_line = preg_replace("/\(|\)/", "", $txt_line);
-  $s_time = preg_split("/時|：|:/", $txt_line);
-  $s_time = preg_replace("/(上|下)午|分/", "", $s_time);
+  $txt_line = preg_replace("/\(|\)|（|）|時間：/", "", $txt_line);
+  if(preg_match("/散會/", $txt_line)) $txt_line = preg_split("/散會/", $txt_line)[1];
+  $s_time = preg_split("/點|時|：|:/", $txt_line);
+  $s_time = preg_replace("/(上|下|中)午|分/", "", $s_time);
 
   foreach($s_time as $k => &$txt) {
     if(preg_match("/\d/", $txt)) {
       preg_match_all("/\d+/", $txt, $match);
       $txt = implode("", $match[0]);
-    } else if(preg_match("/$zh_number_low/", $txt)) {
-      preg_match_all("/$zh_number_low/", $txt, $match);
+    } else if(preg_match("/、/", $txt)) {
+      unset($s_time[$k]);
+    } else if(preg_match("/$zh_number/", $txt)) {
+      preg_match_all("/$zh_number/", $txt, $match);
       $txt = implode("", $match[0]);
       $txt = zh2num($txt);
     } else if($txt == "") {
@@ -158,4 +167,22 @@ function findTime($txt_line) {
   $s_time = implode(":", $s_time);
 
   return($s_time);
+}
+
+function fixLetter($txtline) {
+  // array({慣用字},{異體字})
+  $pair_array = array(array("：", "︰"),
+                      array("錄", "錄"),
+                      array("年", "年"),
+                      array("論", "論"),
+                      array("參", "參"),
+                      array("理", "理"),
+                      array("說", "說"),
+                      array("都", "都"),
+                      array("見", "見"),
+                      array("六", "六"));
+  foreach($pair_array as $pair) {
+    $txtline = preg_replace("/$pair[1]/", $pair[0], $txtline);
+  }
+  return($txtline);
 }
