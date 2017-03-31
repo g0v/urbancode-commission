@@ -7,13 +7,10 @@ require_once("commission_db_connect.php");
 $sql = "SELECT filename FROM file WHERE transform = 1 AND todb = 0 ORDER BY id LIMIT 1";
 $result = $db2->query($sql, PDO::FETCH_ASSOC);
 unset($sql);
-while ($row = $result->fetch()) {
-  $filename = $row['filename'];
-}
+while ($row = $result->fetch()) $filename = $row['filename'];
 
 //development example setup
-// $filename = "TPE_O_702_1";
-$filepath = "./json/TPE/$filename.json";
+$filepath = "./json/$filename.json";
 
 //extract admin and round variable from file name
 preg_match("/^(.*?)_([O|N])_([0-9]+)_(.*?)$/", $filename, $fmatch);

@@ -141,7 +141,7 @@ function findTime($txt_line) {
 
   $noon = (preg_match("/下午/", $txt_line))? 'after' : 'before';
   $txt_line = preg_replace("/\(|\)|（|）|時間：/", "", $txt_line);
-  if(preg_match("/散會/", $txt_line)) $txt_line = preg_split("/散會/", $txt_line)[1];
+  if(preg_match("/散會(：)?/", $txt_line)) $txt_line = preg_split("/散會(：)?/", $txt_line)[1];
   $s_time = preg_split("/點|時|：|:/", $txt_line);
   $s_time = preg_replace("/(上|下|中)午|分/", "", $s_time);
 

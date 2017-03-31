@@ -1,13 +1,13 @@
 <?php
 include_once('functions.php');
 
-$filter = 'MOI';
+$filter = 'TAO';
 include_once($filter."_variables.php");
 $section_title = $sectionPack->getTitleString();
 
 $file_list = file_list_array('txt', $filter);
 
-// record_parse('./txt/MOI_O_438_1.txt');
+// record_parse('./txt/MOI_O_883_1.txt');
 foreach($file_list as $file) {
 // for($cnt = 0; $cnt < count($file_list); $cnt++) {
   //TPE_O_657 and TPE_O_632 contains major issues
@@ -38,6 +38,7 @@ function record_parse($target_file) {
       if((preg_match("/-[0-9]+-/", $txtline))) {
       } else if((preg_match("/^第-?[0-9]+-?頁(\/)?(，)?(第|共)[0-9]+頁$/", $txtline))) {
       } else if((preg_match("/^[0-9]+$/", $txtline))) {
+      } else if((preg_match("/^bpa$/", $txtline))) {
       } else if((preg_match("/^($zh_number_low)+$/", $txtline))) {
       } else {
         array_push($fulltxt, $txtline);
@@ -133,17 +134,23 @@ function case_parse($case_txt) {
   $session_array = clean_empty(slice_my_array($case_part[0], $session_index));
   //parse session contents
   $case_output = array();
+  $case_output['attached'] = array();
   for($i = 0; $i < count($session_array); $i++) {
     if(count($session_array[$i]) > 0) {
       $session_parsed = section_parse($session_array[$i]);
       //if the session is residual, break loop
-      if(preg_match("/^($section_title)($zh_number_low)$/", $session_parsed[0])) {
-        break;
-      }
+      if(preg_match("/^($section_title)($zh_number_low)$/", $session_parsed[0])) break;
       $tag = $casePack->pregTag($session_parsed[0]);
-      if($tag != 'not found') $case_output[$tag] = $session_parsed;
+      if($tag != 'not found') {
+        if($tag == 'attached') {
+          array_push($case_output['attached'], $session_parsed);
+        } else {
+          $case_output[$tag] = $session_parsed;
+        }
+      }
     }
   }
+  if(count($case_output['attached']) == 0) unset($case_output['attached']);
   //parse petition contents
   if(isset($case_part[1])) $case_output['petition'] = petition_parse($case_part[1]);
   return($case_output);
