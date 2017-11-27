@@ -6,10 +6,13 @@
 ## 專案目的
 把各大委員會的會議紀錄材砍回家，作為開放資料，容易查閱檢索，串聯每一次會議過程與最終實施計畫間的關係
 
+## 目前成果
+http://commission.urbancode.tw
+
 ## 提案協作紀錄
 都委會紀錄資料庫化 https://g0v.hackpad.tw/--BpW2Xt7s8AH
-
 (上層-開放都市計畫 http://hackfoldr.urbancode.tw/)
+前端repo https://github.com/g0v/urbancode-commission3w
 
 ## License
 MIT http://g0v.mit-license.org
