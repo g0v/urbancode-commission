@@ -7,26 +7,42 @@
 把各大委員會的會議紀錄材砍回家，作為開放資料，容易查閱檢索，串聯每一次會議過程與最終實施計畫間的關係
 
 ## 提案協作紀錄
-都委會紀錄資料庫化 https://g0v.hackpad.com/--BpW2Xt7s8AH
+都委會紀錄資料庫化 https://g0v.hackpad.tw/--BpW2Xt7s8AH
 
-(上層-開放都市計畫 http://hackfoldr.org/urbancodeg0vtw/ )
+(上層-開放都市計畫 http://hackfoldr.urbancode.tw/)
 
 ## License
 MIT http://g0v.mit-license.org
 
 註：都委會會議紀錄原始文件由各級委員會網站下載，版權依相關法令規範
 
-## 資料存放說明
+## Code 存放說明
+
+pipeline:
+crawler -> TXT-JSON convert -> file2db
+
 ### /code
 code 存放位置
 
-#### /code/crawler
-各都委會網站爬蟲
+#### crawler 各縣市都委會網站爬蟲
 需另外引入pdfparser
 需另外設置connect_mysql.php以連接資料庫(PDO方式連接)
+* /code/file.php
+* /code/page.php
+* /code/simple_html_dom.php
+* /code/toolbox.php
+* /transform.php
 
-#### /code/txt2json_convert
+#### TXT-JSON 格式轉換
 txt to json parser ver.1
+* /code/txt_to_json_convert.php
+* /code/functions.php
+* /code/class_definition.php
+* /code/variables/\*\_variables.php
+
+#### Database 置入 file2db
+* code/file_to_db.php
+* code/object_definition.php
 
 ### google drive
 委員會會議記錄txt存放位置： https://drive.google.com/drive/folders/0B1Y7b2xwFvAxcXpMSXNIWEg3MWs?usp=sharing

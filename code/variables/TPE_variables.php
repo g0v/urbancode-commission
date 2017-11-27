@@ -1,6 +1,6 @@
 <?php
-include_once("class_definition.php");
-include_once("functions.php");
+include_once("../class_definition.php");
+include_once("../functions.php");
 
 $noteTitle = '都市計畫委員會|(紀|記)錄';
 $petitionTableTitle = '臺北市都市計畫委員會公民或團體(所提|陳情)意見綜理表';

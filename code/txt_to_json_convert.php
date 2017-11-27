@@ -2,14 +2,13 @@
 include_once('functions.php');
 
 $filter = 'MOI';
-include_once($filter."_variables.php");
+include_once("variables/".$filter."_variables.php");
 $section_title = $sectionPack->getTitleString();
 
 $file_list = file_list_array('txt', $filter);
 
 // record_parse('./txt/MOI_O_438_1.txt');
 foreach($file_list as $file) {
-// for($cnt = 0; $cnt < count($file_list); $cnt++) {
   //TPE_O_657 and TPE_O_632 contains major issues
   if($filter = 'TPE' && preg_match("/TPE_O_(657|632)/", $file)) continue;
   record_parse($file);
