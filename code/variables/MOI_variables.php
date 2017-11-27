@@ -1,6 +1,6 @@
 <?php
-include_once("../class_definition.php");
-include_once("../functions.php");
+include_once('variables_head.php');
+// include_once(dirname(__FILE__)."/../functions.php");
 
 $noteTitle = '都市計畫委員會|(紀|記)錄';
 $petitionTableTitle = '公民或(機關)?團體(逕向內政部)?陳情意見(部分|綜理表)(：)$';

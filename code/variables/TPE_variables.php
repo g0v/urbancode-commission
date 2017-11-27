@@ -1,6 +1,5 @@
 <?php
-include_once("../class_definition.php");
-include_once("../functions.php");
+include_once('variables_head.php');
 
 $noteTitle = '都市計畫委員會|(紀|記)錄';
 $petitionTableTitle = '臺北市都市計畫委員會公民或團體(所提|陳情)意見綜理表';
@@ -38,7 +37,7 @@ $petitionPack->resolution = '^(委員會)?決議';
 class headerPack {
   //定義會議meta||header標題
   private $timeTag = '^時間';
-  private $locationTag = '地點';
+  private $locationTag = '^地點';
   private $chairTag = '^主席|彙整';
   private $attendCommitteeTag = '出席委員';
   private $attendUnitTag = '列席單位';

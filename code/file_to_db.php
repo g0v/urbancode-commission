@@ -2,9 +2,9 @@
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 require_once("object_definition.php");
-require_once("commission_db_connect.php");
+require_once("../commission_db_connect.php");
 
-$sql = "SELECT filename FROM file WHERE transform = 1 AND todb = 0 ORDER BY id LIMIT 1";
+$sql = "SELECT filename FROM file WHERE transform = 1 AND totxt = 1 AND todb = 0 ORDER BY id LIMIT 1";
 $result = $db2->query($sql, PDO::FETCH_ASSOC);
 unset($sql);
 while ($row = $result->fetch()) {
@@ -13,7 +13,9 @@ while ($row = $result->fetch()) {
 
 //development example setup
 // $filename = "TPE_O_702_1";
-$filepath = "./json/TPE/$filename.json";
+
+// $place = substr($filename,0,3);
+$filepath = "./json/$filename.json";
 
 //extract admin and round variable from file name
 preg_match("/^(.*?)_([O|N])_([0-9]+)_(.*?)$/", $filename, $fmatch);

@@ -2,3 +2,5 @@ code/json/
 code/txt/
 code/origin/
 index.html
+connect_mysql.php
+commission_db_connect.php

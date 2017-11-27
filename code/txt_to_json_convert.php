@@ -1,17 +1,36 @@
 <?php
 include_once('functions.php');
+require_once("../commission_db_connect.php");
 
-$filter = 'MOI';
-include_once("variables/".$filter."_variables.php");
-$section_title = $sectionPack->getTitleString();
+$sql = "SELECT * FROM file WHERE transform = 1 AND totxt = 0 ORDER BY id DESC LIMIT 1";
+$result = $db2->query($sql, PDO::FETCH_ASSOC);
+unset($sql);
+while ($row = $result->fetch()) {
+  $filename = $row['filename'];
+}
 
-$file_list = file_list_array('txt', $filter);
+$place = substr($filename,0,3);
 
-// record_parse('./txt/MOI_O_438_1.txt');
-foreach($file_list as $file) {
-  //TPE_O_657 and TPE_O_632 contains major issues
-  if($filter = 'TPE' && preg_match("/TPE_O_(657|632)/", $file)) continue;
-  record_parse($file);
+if(preg_match("/TPE|MOI/", $place)) {
+    include_once("variables/".$place."_variables.php");
+    $section_title = $sectionPack->getTitleString();
+    if(!($place = 'TPE' && preg_match("/TPE_O_(657|632)/", $filename))) {
+        //TPE_O_657 and TPE_O_632 contains major issues
+        $file = './txt/'.$filename.'.txt';
+        try {
+            // record_parse('./txt/MOI_O_438_1.txt');
+            record_parse($file);
+            $result = 1;
+        } catch (Exception $e) {
+            $result = 2;
+        } finally {
+            $sql = "UPDATE file SET totxt = $result WHERE filename = :filename";
+            $stmt = $db2->prepare($sql);
+            $stmt->bindParam(":filename", $filename);
+            $stmt->execute();
+            unset($sql);
+        }
+    }
 }
 
 function record_parse($target_file) {
@@ -54,6 +73,10 @@ function record_parse($target_file) {
   global $record_end;
   //identify item index position
   $section_index = find_index($fulltxt, "(($zh_number_low).*.($section_title))|$record_end");
+  //if cannot find item index with low case number, try cap case number
+  if(sizeof($section_index) == 1){
+        $section_index = find_index($fulltxt, "(($zh_number_cap).*.($section_title))|$record_end");
+  }
   foreach($fulltxt as $k => $v) {
     if(preg_match("/$record_end/", $v)) $end_index = $k;
   }
