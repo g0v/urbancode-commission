@@ -2,7 +2,8 @@
 include_once('functions.php');
 require_once("../commission_db_connect.php");
 
-$sql = "SELECT * FROM file WHERE transform = 1 AND totxt = 0 ORDER BY id DESC LIMIT 1";
+// $sql = "SELECT * FROM file WHERE transform = 1 AND totxt = 0 ORDER BY id DESC LIMIT 1";
+$sql = "SELECT * FROM file WHERE transform = 1 AND totxt = 0 AND (filename LIKE '%TPE%' OR filename LIKE '%MOI%') ORDER BY id DESC LIMIT 1";
 $result = $db2->query($sql, PDO::FETCH_ASSOC);
 unset($sql);
 while ($row = $result->fetch()) {

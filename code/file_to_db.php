@@ -7,59 +7,67 @@ require_once("../commission_db_connect.php");
 $sql = "SELECT filename FROM file WHERE transform = 1 AND totxt = 1 AND todb = 0 ORDER BY id LIMIT 1";
 $result = $db2->query($sql, PDO::FETCH_ASSOC);
 unset($sql);
+
 while ($row = $result->fetch()) {
   $filename = $row['filename'];
 }
 
-//development example setup
-// $filename = "TPE_O_702_1";
+print_r($filename);
 
-// $place = substr($filename,0,3);
-$filepath = "./json/$filename.json";
-
-//extract admin and round variable from file name
-preg_match("/^(.*?)_([O|N])_([0-9]+)_(.*?)$/", $filename, $fmatch);
-$admin = $fmatch[1].$fmatch[2];
-$round = $fmatch[4];
-
-//read in json contect and decode it
-$jsonfile = fopen($filepath, 'r');
-$json_data = fgets($jsonfile);
-fclose($jsonfile);
-$json_data = json_decode($json_data, $assoc=TRUE);
-
-//declare note obj
-$note = new note_meta();
-$note->admin = $admin;
-$note->round = $round;
-
-loadJson($note, $json_data);
-$note->setNoteCode();
-$note->setJson(array('attend_committee', 'attend_unit'));
-
-insertNote('note_table', $note);
-
-foreach($json_data as $key => $value) {
-  if(preg_match("/item/", $key)) {
-    foreach($value as $item_array) {
-      $case_item = createItem($item_array, $key, $note->note_code);
-      insertNote('case_table', $case_item);
-      if(isset($item_array['petition'])) {
-        foreach($item_array['petition'] as $petition_array) {
-          $petition = createPetition($petition_array, $note->note_code, $case_item->case_code);
-          insertNote('petition_table', $petition);
-        }
-      }
-    }
-  }
+if(isset($filename)) {
+    //development example setup
+    // $filename = "TPE_O_702_1";
+    file2db($filename, $db2);
 }
-$dbh = null;
 
-$sql = "UPDATE file SET todb = 1 WHERE filename = :filename";
-$stmt = $db2->prepare($sql);
-$stmt->bindParam(":filename", $filename);
-$stmt->execute();
-$db2 = null;
+function file2db($filename, $db2)
+{
+    $filepath = "./json/$filename.json";
+
+    //extract admin and round variable from file name
+    preg_match("/^(.*?)_([O|N])_([0-9]+)_(.*?)$/", $filename, $fmatch);
+    $admin = $fmatch[1].$fmatch[2];
+    $round = $fmatch[4];
+
+    //read in json contect and decode it
+    $jsonfile = fopen($filepath, 'r');
+    $json_data = fgets($jsonfile);
+    fclose($jsonfile);
+    $json_data = json_decode($json_data, $assoc=TRUE);
+
+    //declare note obj
+    $note = new note_meta();
+    $note->admin = $admin;
+    $note->round = $round;
+
+    loadJson($note, $json_data);
+    $note->setNoteCode();
+    $note->setJson(array('attend_committee', 'attend_unit'));
+
+    insertNote('note_table', $note);
+
+    foreach($json_data as $key => $value) {
+        if(preg_match("/item/", $key)) {
+            foreach($value as $item_array) {
+                $case_item = createItem($item_array, $key, $note->note_code);
+                insertNote('case_table', $case_item);
+                if(isset($item_array['petition'])) {
+                    foreach($item_array['petition'] as $petition_array) {
+                        $petition = createPetition($petition_array, $note->note_code, $case_item->case_code);
+                        insertNote('petition_table', $petition);
+                    }
+                }
+            }
+        }
+    }
+    $dbh = null;
+
+    $sql = "UPDATE file SET todb = 1 WHERE filename = :filename";
+    $stmt = $db2->prepare($sql);
+    $stmt->bindParam(":filename", $filename);
+    $stmt->execute();
+    $db2 = null;
+}
 
 function createItem($item_array, $key, $note_code) {
   $item_tag = array('',

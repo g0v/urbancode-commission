@@ -1,6 +1,8 @@
 code/json/
 code/txt/
 code/origin/
-index.html
+code/pdfparser/
+code/error.log
+index.php
 connect_mysql.php
 commission_db_connect.php

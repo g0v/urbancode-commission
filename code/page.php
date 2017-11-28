@@ -1,11 +1,13 @@
 <?php
 error_reporting(E_ALL);
+// set_time_limit(60);
+// ini_set('memory_limit', '1024M');
 include_once 'toolbox.php';
 
 function TXG()
 {
     global $page_upload, $gov, $url, $text;
-    $content = curl_simple('http://www.ud.taichung.gov.tw/lp.asp?CtNode=22422&CtUnit=6506&BaseDSD=7&mp=127010&nowPage=1&pagesize=3000');
+    $content = curl_simple('http://www.ud.taichung.gov.tw/lp.asp?CtNode=22422&CtUnit=6506&BaseDSD=7&mp=127010&nowPage=1');//&pagesize=3000');
     preg_match('/class="list"[\s\S]*?<\/ul>[\s\S]*?<\/div>/', $content, $match);
     $html = str_get_html($match[0]);
     $list = $html->find('ul', 0)->find('li');
@@ -118,7 +120,8 @@ function KEE($type = 'new')
 
     for ($page_num = 1; $page_num <= $page_max; $page_num++) {
 
-        $content = curl_simple('http://upgis.klcg.gov.tw/kl_land/meeting/reclist.asp?ToPage=' . $page_num);
+        $url = 'https://upgis.klcg.gov.tw/KL_LAND/meeting/reclist.asp?ToPage=' . $page_num;
+        $content = curl_simple($url);
         $html    = str_get_html(mb_convert_encoding($content, "UTF-8", "BIG5"));
 
         $list = $html->find('input[name=image]');
@@ -417,18 +420,49 @@ function MOICRO($type = 'new')
         }
     }
 }
-TXG('all');
-TPE('all');
-TAO('all');
-KHH('all');
-KEE('all');
-HSZ('all');
-YUN('all');
-NAN('all');
-MIA('all');
+
+$function_list = [
+                'TXG',
+                'TPE',
+                'TAO',
+                'KHH',
+                'KEE',
+                'HSZ',
+                'YUN',
+                'NAN',
+                'MIA',
+                // 'LIE',
+                'ILA',
+                'HUA',
+                'HSQ',
+                'MOI',
+                'MOICRO'
+                ];
+
+foreach ($function_list as $place) {
+    try {
+        call_user_func($place, 'all');
+        echo 'Success ('. $place .').' . PHP_EOL;
+    } catch (Exception $e) {
+        echo 'Crawler failed ('. $place .'): ' . $e->getMessage() . PHP_EOL;
+        $log_file = 'error.log';
+        $current = file_get_contents($log_file);
+        $current .= 'Crawler failed ('. $place .'): ' . $e->getMessage() . '\n';
+        file_put_contents($log_file, $current);
+    }
+}
+// TXG('all');
+// TPE('all');
+// TAO('all');
+// KHH('all');
+// KEE('all');
+// HSZ('all');
+// YUN('all');
+// NAN('all');
+// MIA('all');
 // LIE('all');
-ILA('all');
-HUA('all');
-HSQ('all');
-MOI('all');
-MOICRO('all');
+// ILA('all');
+// HUA('all');
+// HSQ('all');
+// MOI('all');
+// MOICRO('all');
