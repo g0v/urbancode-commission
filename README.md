@@ -10,9 +10,9 @@
 http://commission.urbancode.tw
 
 ## 提案協作紀錄
-都委會紀錄資料庫化 https://g0v.hackpad.tw/--BpW2Xt7s8AH
-(上層-開放都市計畫 http://hackfoldr.urbancode.tw/)
-前端repo https://github.com/g0v/urbancode-commission3w
+* 都委會紀錄資料庫化 https://g0v.hackpad.tw/--BpW2Xt7s8AH
+* 前端repo https://github.com/g0v/urbancode-commission3w
+* (上層-開放都市計畫 http://hackfoldr.urbancode.tw/)
 
 ## License
 MIT http://g0v.mit-license.org
