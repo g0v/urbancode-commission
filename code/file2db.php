@@ -1,7 +1,7 @@
 <?php
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
-require_once("object_definition.php");
+require_once("file2db_object_definition.php");
 require_once("../commission_db_connect.php");
 
 $sql = "SELECT filename FROM file WHERE transform = 1 AND totxt = 1 AND todb = 0 ORDER BY id LIMIT 1";

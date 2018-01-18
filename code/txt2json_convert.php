@@ -1,5 +1,5 @@
 <?php
-include_once('functions.php');
+include_once('txt2json_functions.php');
 require_once("../commission_db_connect.php");
 
 // $sql = "SELECT * FROM file WHERE transform = 1 AND totxt = 0 ORDER BY id DESC LIMIT 1";
@@ -20,8 +20,8 @@ $place = substr($filename,0,3);
 // record_parse('./txt/MOI_O_892_1.txt');
 
 if(preg_match("/TPE|MOI/", $place)) {
-    include_once("variables/".$place."_variables.php");
-    include_once("petitionParser/".$place."_petitionParser.php");
+    include_once("txt2json_variables/".$place."_variables.php");
+    include_once("txt2json_petitionParser/".$place."_petitionParser.php");
     $section_title = $sectionPack->getTitleString();
     if(!($place = 'TPE' && preg_match("/TPE_O_(657|632)/", $filename))) {
         //TPE_O_657 and TPE_O_632 contains major issues
