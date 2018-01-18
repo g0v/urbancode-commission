@@ -10,7 +10,6 @@ while ($row = $result->fetch()) {
   $filename = $row['filename'];
 }
 
-<<<<<<< HEAD:code/txt_to_json_convert.php
 $place = substr($filename,0,3);
 
 // $place = '';
@@ -39,25 +38,10 @@ if(preg_match("/TPE|MOI/", $place)) {
             unset($sql);
         }
     }
-=======
-$filter = 'TAO';
-include_once($filter."_variables.php");
-$section_title = $sectionPack->getTitleString();
-
-$file_list = file_list_array('txt', $filter);
-
-// record_parse('./txt/MOI_O_883_1.txt');
-foreach($file_list as $file) {
-// for($cnt = 0; $cnt < count($file_list); $cnt++) {
-  //TPE_O_657 and TPE_O_632 contains major issues
-  if($filter = 'TPE' && preg_match("/TPE_O_(657|632)/", $file)) continue;
-  record_parse($file);
->>>>>>> b85f1a4c573074ceb247cc99fbf905a9deaebf7e:code/txt2json_convert/txt_to_json_convert.php
 }
 
 function record_parse($target_file) {
-  global $zh_number_low;
-  global $noteTitle;
+  global $zh_number_low, $noteTitle;
 
   preg_match('~([O|N]_)(.*?)(_\d+\.txt)~',$target_file, $target);
   $target = $target[2];
@@ -71,7 +55,6 @@ function record_parse($target_file) {
 
   //read in txt lines
   while(!feof($txtfile)) {
-<<<<<<< HEAD:code/txt_to_json_convert.php
       $page_num = array();
       $page_line = 0;
 
@@ -101,21 +84,6 @@ function record_parse($target_file) {
           $page_line = 1;
       }
       if($page_line) {
-=======
-    $txtline = trim(fgets($txtfile));
-    $txtline = mb_convert_encoding($txtline, "UTF-8");
-    $txtline = preg_replace("/ +/", "", $txtline);
-    //置換中文異體字
-    $txtline = fixLetter($txtline);
-
-    //drop page number or empty lines
-    if(strlen($txtline) != 0) {
-      if((preg_match("/-[0-9]+-/", $txtline))) {
-      } else if((preg_match("/^第-?[0-9]+-?頁(\/)?(，)?(第|共)[0-9]+頁$/", $txtline))) {
-      } else if((preg_match("/^[0-9]+$/", $txtline))) {
-      } else if((preg_match("/^bpa$/", $txtline))) {
-      } else if((preg_match("/^($zh_number_low)+$/", $txtline))) {
->>>>>>> b85f1a4c573074ceb247cc99fbf905a9deaebf7e:code/txt2json_convert/txt_to_json_convert.php
       } else {
           array_push($fulltxt, $txtline);
       }

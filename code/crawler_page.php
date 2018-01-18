@@ -1,8 +1,6 @@
 <?php
-error_reporting(E_ALL);
-set_time_limit(60);
-ini_set('memory_limit', '1024M');
-include_once 'crawler_toolbox.php';
+if(file_exists('php_ini_setup.php')) include_once('php_ini_setup.php');
+include_once('crawler_toolbox.php');
 
 function TXG()
 {
@@ -91,8 +89,8 @@ function KHH($type = 'new')
         $page_max = 1;
 
         for ($page_num = 1; $page_num <= $page_max; $page_num++) {
-            $content = curl_simple('http://kupc.kcg.gov.tw/KUPC/web_page/KPP0013.jsp', ['KP005008' => $gov_attr[1],
-                'PNO'                                                                                  => $page_num]);
+            $content = curl_simple('http://kupc.kcg.gov.tw/KUPC/web_page/KPP0013.jsp',
+                                    ['KP005008' => $gov_attr[1], 'PNO' => $page_num]);
             $html = str_get_html(mb_convert_encoding($content, "UTF-8", "BIG5"));
 
             $list = $html->find('a[title] font');
@@ -456,8 +454,8 @@ $function_list = [
 
 foreach ($function_list as $place) {
     try {
-        call_user_func($place, 'all');
-        echo 'Success ('. $place .').' . PHP_EOL;
+        call_user_func($place, 'new');
+        echo 'Success ('. $place .')' . PHP_EOL;
     } catch (Exception $e) {
         echo 'Crawler failed ('. $place .'): ' . $e->getMessage() . PHP_EOL;
         $log_file = 'error.log';
