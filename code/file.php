@@ -123,7 +123,7 @@ function file_text_parser($text)
         }
     } elseif ($text == '第二次專案會議紀錄') {
         $number = '第二次專案會議紀錄';
-    }else {
+    } else {
         exit($text);
     }
 

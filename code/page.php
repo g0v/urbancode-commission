@@ -1,7 +1,7 @@
 <?php
 error_reporting(E_ALL);
-// set_time_limit(60);
-// ini_set('memory_limit', '1024M');
+set_time_limit(60);
+ini_set('memory_limit', '1024M');
 include_once 'toolbox.php';
 
 function TXG()
@@ -29,7 +29,7 @@ function TXG()
 function TPE()
 {
     global $page_upload, $gov, $url, $text;
-    $content = curl_simple('http://www.tupc.gov.taipei/lp.asp?CtNode=6308&CtUnit=4388&BaseDSD=7&mp=120021&nowPage=1&pagesize=5000');
+    $content = curl_simple('http://www.tupc.gov.taipei/lp.asp?CtNode=6308&CtUnit=4388&BaseDSD=7&mp=120021&nowPage=1&pagesize=1');//5000');
     $html    = str_get_html($content);
     $list    = $html->find('.list', 0)->find('ul', 0)->find('li');
     foreach ($list as $value) {
@@ -52,7 +52,7 @@ function TAO()
 {
   global $page_upload, $gov, $url, $text;
 
-  $content = curl_simple('http://urdb.tycg.gov.tw/home.jsp?id=116&parentpath=0%2C2%2C7%2C87', ['page' => 1, 'pagesize' => 5000]);
+  $content = curl_simple('http://urdb.tycg.gov.tw/home.jsp?id=116&parentpath=0%2C2%2C7%2C87', ['page' => 1, 'pagesize' => 1]);//5000]);
   $html = str_get_html($content);
   $list = $html->find('#messageform', 0)->find('div[id=home_content]', 0)->find('div[id=home_content00]', 0)->find('div#content_list', 0)->find('.list_list');
   // print_r(count($list));
@@ -402,26 +402,41 @@ function MOICRO($type = 'new')
     $gov      = 'MOICRO_O';
     $page_max = 1;
     for ($page_num = 1; $page_num <= $page_max; $page_num++) {
-
-        $content = curl_simple('http://www.cpami.gov.tw/chinese/index.php?option=com_filedownload&view=filedownload&Itemid=68&filter_cat=5&filter_gp=10&limitstart=' . ($page_num - 1) * 15);
+        $content = curl_simple('https://www.cpami.gov.tw/%E4%BE%BF%E6%B0%91%E6%9C%8D%E5%8B%99/%E4%B8%8B%E8%BC%89%E5%B0%88%E5%8D%80/%E4%B8%8B%E8%BC%89%E5%B0%88%E5%8D%80%E6%B8%85%E5%96%AE.html?filter_cat=5&filter_gp=5&start=0');
         $html    = str_get_html($content);
         $list    = $html->find('.datatable tbody tr');
 
         foreach ($list as $tr) {
             $link = $tr->find('a', 0);
             $url  = 'http://www.cpami.gov.tw/' . $link->href;
-            $text = $link->plaintext . str_replace('/', '', $tr->find('td', 5)->plaintext);
+            $text = $link->title;
             $page_upload->execute();
         }
+    }
+}
 
-        if ($type == 'all') {
-            preg_match("/共\s*(\d*)/", $html->find('.pageresult', 0)->plaintext, $match);
-            $page_max = ceil(intval($match[1]) / 15);
+function NWT($type = 'new')
+{
+    global $page_upload, $gov, $url, $text;
+    $gov      = 'NWT_N';
+    $page_max = 8;
+    for ($page_num = 1; $page_num <= $page_max; $page_num++) {
+        $content = curl_simple('http://www.planning.ntpc.gov.tw/download/?page='.$page_num.'&type_id=10479&parent_id=10160');
+        $html    = str_get_html($content);
+        $list    = $html->find('#download_box tr');
+        foreach ($list as $tr) {
+            $text = $tr->children(0)->plaintext;
+            if(!preg_match('/會議紀錄/', $text)) continue;
+            if(preg_match('/專案小組/', $text)) continue;
+            $url = $tr->children(2)->children(0)->href;
+            $url = 'http://www.planning.ntpc.gov.tw/download/' . $url;
+            $page_upload->execute();
         }
     }
 }
 
 $function_list = [
+                'NWT',
                 'TXG',
                 'TPE',
                 'TAO',
@@ -451,18 +466,16 @@ foreach ($function_list as $place) {
         file_put_contents($log_file, $current);
     }
 }
-// TXG('all');
-// TPE('all');
-// TAO('all');
-// KHH('all');
-// KEE('all');
-// HSZ('all');
-// YUN('all');
-// NAN('all');
-// MIA('all');
-// LIE('all');
-// ILA('all');
-// HUA('all');
-// HSQ('all');
-// MOI('all');
-// MOICRO('all');
+//
+// $place = 'MOICRO';
+//
+// try {
+//     MOICRO('all');
+//     echo 'Success ('. $place .').' . PHP_EOL;
+// } catch (Exception $e) {
+//     echo 'Crawler failed ('. $place .'): ' . $e->getMessage() . PHP_EOL;
+//     $log_file = 'error.log';
+//     $current = file_get_contents($log_file);
+//     $current .= 'Crawler failed ('. $place .'): ' . $e->getMessage() . '\n';
+//     file_put_contents($log_file, $current);
+// }

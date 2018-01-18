@@ -19,13 +19,13 @@ function file_list_array($dir = 'txt', $filter = 'all') {
 }
 
 function find_index($fulltxt, $title_string) {
-  $index = array();
-  foreach($fulltxt as $k => $v) {
-    if(preg_match("/$title_string/", $v)) {
-      array_push($index, $k);
+    $index = array();
+    foreach($fulltxt as $k => $v) {
+        if(preg_match("/$title_string/", $v)) {
+            array_push($index, $k);
+        }
     }
-  }
-  return($index);
+    return($index);
 }
 
 function slice_my_array($fulltxt, $index_array) {

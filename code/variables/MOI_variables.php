@@ -3,7 +3,10 @@ include_once('variables_head.php');
 // include_once(dirname(__FILE__)."/../functions.php");
 
 $noteTitle = '都市計畫委員會|(紀|記)錄';
-$petitionTableTitle = '公民或(機關)?團體(逕向內政部)?陳情意見(部分|綜理表)(：)$';
+$petitionTableTitleArray = array('(公民或(機關)?團體(逕向內政部)?陳情意見(部分|綜理表)(：)$)',
+                                '(附表：本會專案小組會議後逕向本部陳情意見)');
+$petitionTableTitle = implode('|', $petitionTableTitleArray);
+// $petitionTableTitle = '公民或(機關)?團體(逕向內政部)?陳情意見(部分|綜理表)(：)$';
 $record_end = '散會';
 
 //定義會議記錄各段落大標
@@ -28,12 +31,12 @@ $casePack->attached ='^(【)?附(件|錄|表)(】)?.*：';
 
 //定義陳情案件段落標題
 $petitionPack = new titlePack;
-$petitionPack->petition_num = '^編號.*陳情人';
-$petitionPack->reason = '^陳情理由';
-$petitionPack->suggest = '^建議辦法';
-$petitionPack->response = '^(申請單位|市府)回(覆|應)(意見)?';
-$petitionPack->adhoc = '^專案小組(審查意見)?';
-$petitionPack->resolution = '^(委員會)?決議';
+$petitionPack->petition_num = '^[0-9]+$';
+// $petitionPack->reason = '^陳情理由';
+// $petitionPack->suggest = '^建議辦法';
+$petitionPack->response = '^建議(未便|同意)?採納;';
+// $petitionPack->adhoc = '^專案小組(審查意見)?';
+// $petitionPack->resolution = '^(委員會)?決議';
 
 //定義 header 類別與處理方法
 class headerPack {

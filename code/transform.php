@@ -15,11 +15,6 @@ while ($row=$result->fetch()) {
 	$db->exec("UPDATE file SET transform=2 WHERE filename='$filename'");
 	file_to_txt($filename,$type);
 
-// try {
-// 	$db=new PDO($dsn,$db_user,$db_password,$db_options);
-// } catch (PDOException  $e) {
-// 		echo 'error: ' . $e->getMessage();
-// }
 	if (!$error) {
 		$db->exec("UPDATE file SET transform=1 WHERE filename='$filename'");
 	}elseif ($error) {

@@ -12,14 +12,20 @@ while ($row = $result->fetch()) {
 
 $place = substr($filename,0,3);
 
+// $place = '';
+// include_once("variables/MOI_variables.php");
+// include_once("petitionParser/MOI_petitionParser.php");
+// $section_title = $sectionPack->getTitleString();
+// record_parse('./txt/MOI_O_892_1.txt');
+
 if(preg_match("/TPE|MOI/", $place)) {
     include_once("variables/".$place."_variables.php");
+    include_once("petitionParser/".$place."_petitionParser.php");
     $section_title = $sectionPack->getTitleString();
     if(!($place = 'TPE' && preg_match("/TPE_O_(657|632)/", $filename))) {
         //TPE_O_657 and TPE_O_632 contains major issues
         $file = './txt/'.$filename.'.txt';
         try {
-            // record_parse('./txt/MOI_O_438_1.txt');
             record_parse($file);
             $result = 1;
         } catch (Exception $e) {
@@ -44,24 +50,44 @@ function record_parse($target_file) {
   $txtfile = fopen($target_file, 'r');
   $fulltxt = array();
 
+  //setup for page number checker
+  $current_page = 0;
+  $zh_page = 0;
+
   //read in txt lines
   while(!feof($txtfile)) {
-    $txtline = trim(fgets($txtfile));
-    $txtline = mb_convert_encoding($txtline, "UTF-8");
-    $txtline = preg_replace("/ +/", "", $txtline);
-    //置換中文異體字
-    $txtline = fixLetter($txtline);
+      $page_num = array();
+      $page_line = 0;
 
-    //drop page number or empty lines
-    if(strlen($txtline) != 0) {
-      if((preg_match("/-[0-9]+-/", $txtline))) {
-      } else if((preg_match("/^第-?[0-9]+-?頁(\/)?(，)?(第|共)[0-9]+頁$/", $txtline))) {
-      } else if((preg_match("/^[0-9]+$/", $txtline))) {
-      } else if((preg_match("/^($zh_number_low)+$/", $txtline))) {
-      } else {
-        array_push($fulltxt, $txtline);
+      $txtline = trim(fgets($txtfile));
+      $txtline = mb_convert_encoding($txtline, "UTF-8");
+      $txtline = preg_replace("/ +/", "", $txtline);
+      //置換中文異體字
+      $txtline = fixLetter($txtline);
+
+      //check whether certain line is page number
+      if(strlen($txtline) != 0) {
+          if((preg_match("/-([0-9]+)-/", $txtline, $page_num))) {
+          } else if((preg_match("/^第-?([0-9]+)-?頁(\/)?(，)?(第|共)[0-9]+頁$/", $txtline, $page_num))) {
+          } else if((preg_match("/^([0-9]+)$/", $txtline, $page_num))) {
+          } else if((preg_match("/^(($zh_number_low)+)$/", $txtline, $page_num))) {
+              $zh_page = 1;
+          }
       }
-    }
+      //drop page number lines
+      if(!empty($page_num) && !$zh_page) {
+          $this_page = $page_num[0];
+          if($this_page == $current_page+1) {
+              $current_page += 1;
+              $page_line = 1;
+          }
+      } else if(!empty($page_num) && $zh_page) {
+          $page_line = 1;
+      }
+      if($page_line) {
+      } else {
+          array_push($fulltxt, $txtline);
+      }
   }
   fclose($txtfile);
 
@@ -74,7 +100,7 @@ function record_parse($target_file) {
   global $record_end;
   //identify item index position
   $section_index = find_index($fulltxt, "(($zh_number_low).*.($section_title))|$record_end");
-  //if cannot find item index with low case number, try cap case number
+  //if cannot find item index with lower case number, try cap case number
   if(sizeof($section_index) == 1){
         $section_index = find_index($fulltxt, "(($zh_number_cap).*.($section_title))|$record_end");
   }
@@ -170,68 +196,6 @@ function case_parse($case_txt) {
   //parse petition contents
   if(isset($case_part[1])) $case_output['petition'] = petition_parse($case_part[1]);
   return($case_output);
-}
-
-function petition_parse($petition_array) {
-  global $petitionPack;
-  global $petitionTableTitle;
-  $petition_title = $petitionPack->getTitleString();
-  $petition_tag = array('reason', 'suggest', 'response', 'adhoc', 'resolution');
-
-  if(preg_match("/$petitionTableTitle/", $petition_array[0])) {
-    unset($petition_array[0]);
-    $petition_array = array_values($petition_array);
-  }
-  //依'編號'切割petition array
-  $petition_cnt = find_index($petition_array, $petitionPack->petition_num);
-  $petition_case = clean_empty(slice_my_array($petition_array, $petition_cnt));
-  if(count($petition_case) ==0 ) return;
-  //如果petition_case[0]是案名，存入petition_header
-  if(preg_match("/案名/", $petition_case[0][0])) {
-    $petition_header = $petition_case[0];
-    unset($petition_case[0]);
-  }
-  //移除陳情文中的案名line
-  if(isset($petition_header)) {
-    foreach($petition_case as &$petition_active) {
-      foreach($petition_active as $active_k => $active_line) {
-        foreach($petition_header as $header_k => $header_line) {
-          if($active_line === $header_line) unset($petition_active[$active_k]);
-        }
-      }
-      $petition_active = array_values($petition_active);
-    }
-    $petition_case_name = combine_array_sentence(array($petition_header))[0];
-  }
-
-  $petition_output = array();
-  foreach($petition_case as $k => $peition) {
-    if(isset($petition_case_name)) $petition_this['petition_case'] = $petition_case_name;
-    $petition_index = find_index($peition, $petition_title);
-    $petition_section = clean_empty(slice_my_array($peition, $petition_index));
-
-    foreach($petition_section as $single_petition) {
-      if (preg_match("/$petitionPack->petition_num/", $single_petition[0])) {
-        $first_line = $single_petition[0];
-        $name_pos = strpos($first_line, "陳情人");
-        $petition_num = substr($first_line, 0, $name_pos);
-        $petition_num = trim(preg_replace("/$petitionPack->petition_num/", "", $petition_num));
-        $petition_this['petition_num'] = $petition_num;
-        $petition_name = substr($first_line, $name_pos);
-        $petition_name = trim(preg_replace("/陳情人/", "", $petition_name));
-        $petition_this['name'] = $petition_name;
-      } else {
-        $tag = $petitionPack->pregTag($single_petition[0]);
-        if ($tag === "petition_num|name") continue;
-        if ($tag != 'not found') $petition_this[$tag] = section_parse($single_petition);
-      }
-    }
-    if(isset($petition_this)) {
-      array_push($petition_output, $petition_this);
-      unset($petition_this);
-    }
-  }
-  return($petition_output);
 }
 
 function section_parse($section_txt) {
