@@ -3,10 +3,15 @@ include_once('variables_head.php');
 // include_once(dirname(__FILE__)."/../functions.php");
 
 $noteTitle = '都市計畫委員會|(紀|記)錄';
+<<<<<<< HEAD:code/variables/MOI_variables.php
 $petitionTableTitleArray = array('(公民或(機關)?團體(逕向內政部)?陳情意見(部分|綜理表)(：)$)',
                                 '(附表：本會專案小組會議後逕向本部陳情意見)');
 $petitionTableTitle = implode('|', $petitionTableTitleArray);
 // $petitionTableTitle = '公民或(機關)?團體(逕向內政部)?陳情意見(部分|綜理表)(：)$';
+=======
+//***內政部會議記錄的陳情部分要另外處理
+$petitionTableTitle = '000公民或(機關)?團體(逕向內政部)?陳情意見(部分|綜理表)(：)$';
+>>>>>>> b85f1a4c573074ceb247cc99fbf905a9deaebf7e:code/txt2json_convert/MOI_variables.php
 $record_end = '散會';
 
 //定義會議記錄各段落大標
@@ -27,6 +32,7 @@ $casePack->response = '^(市府|發展局)回應：';
 // $casePack->adhoc = '本會專案小組(出席委員)?初步建議意見';
 $casePack->resolution = '^決議(：)?';
 $casePack->add_resolution = '^附帶決議(：)?';
+//***多個附件的處理方式要再研究
 $casePack->attached ='^(【)?附(件|錄|表)(】)?.*：';
 
 //定義陳情案件段落標題

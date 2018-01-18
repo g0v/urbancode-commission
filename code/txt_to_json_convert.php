@@ -10,6 +10,7 @@ while ($row = $result->fetch()) {
   $filename = $row['filename'];
 }
 
+<<<<<<< HEAD:code/txt_to_json_convert.php
 $place = substr($filename,0,3);
 
 // $place = '';
@@ -38,6 +39,20 @@ if(preg_match("/TPE|MOI/", $place)) {
             unset($sql);
         }
     }
+=======
+$filter = 'TAO';
+include_once($filter."_variables.php");
+$section_title = $sectionPack->getTitleString();
+
+$file_list = file_list_array('txt', $filter);
+
+// record_parse('./txt/MOI_O_883_1.txt');
+foreach($file_list as $file) {
+// for($cnt = 0; $cnt < count($file_list); $cnt++) {
+  //TPE_O_657 and TPE_O_632 contains major issues
+  if($filter = 'TPE' && preg_match("/TPE_O_(657|632)/", $file)) continue;
+  record_parse($file);
+>>>>>>> b85f1a4c573074ceb247cc99fbf905a9deaebf7e:code/txt2json_convert/txt_to_json_convert.php
 }
 
 function record_parse($target_file) {
@@ -56,6 +71,7 @@ function record_parse($target_file) {
 
   //read in txt lines
   while(!feof($txtfile)) {
+<<<<<<< HEAD:code/txt_to_json_convert.php
       $page_num = array();
       $page_line = 0;
 
@@ -85,6 +101,21 @@ function record_parse($target_file) {
           $page_line = 1;
       }
       if($page_line) {
+=======
+    $txtline = trim(fgets($txtfile));
+    $txtline = mb_convert_encoding($txtline, "UTF-8");
+    $txtline = preg_replace("/ +/", "", $txtline);
+    //置換中文異體字
+    $txtline = fixLetter($txtline);
+
+    //drop page number or empty lines
+    if(strlen($txtline) != 0) {
+      if((preg_match("/-[0-9]+-/", $txtline))) {
+      } else if((preg_match("/^第-?[0-9]+-?頁(\/)?(，)?(第|共)[0-9]+頁$/", $txtline))) {
+      } else if((preg_match("/^[0-9]+$/", $txtline))) {
+      } else if((preg_match("/^bpa$/", $txtline))) {
+      } else if((preg_match("/^($zh_number_low)+$/", $txtline))) {
+>>>>>>> b85f1a4c573074ceb247cc99fbf905a9deaebf7e:code/txt2json_convert/txt_to_json_convert.php
       } else {
           array_push($fulltxt, $txtline);
       }
@@ -182,17 +213,23 @@ function case_parse($case_txt) {
   $session_array = clean_empty(slice_my_array($case_part[0], $session_index));
   //parse session contents
   $case_output = array();
+  $case_output['attached'] = array();
   for($i = 0; $i < count($session_array); $i++) {
     if(count($session_array[$i]) > 0) {
       $session_parsed = section_parse($session_array[$i]);
       //if the session is residual, break loop
-      if(preg_match("/^($section_title)($zh_number_low)$/", $session_parsed[0])) {
-        break;
-      }
+      if(preg_match("/^($section_title)($zh_number_low)$/", $session_parsed[0])) break;
       $tag = $casePack->pregTag($session_parsed[0]);
-      if($tag != 'not found') $case_output[$tag] = $session_parsed;
+      if($tag != 'not found') {
+        if($tag == 'attached') {
+          array_push($case_output['attached'], $session_parsed);
+        } else {
+          $case_output[$tag] = $session_parsed;
+        }
+      }
     }
   }
+  if(count($case_output['attached']) == 0) unset($case_output['attached']);
   //parse petition contents
   if(isset($case_part[1])) $case_output['petition'] = petition_parse($case_part[1]);
   return($case_output);
