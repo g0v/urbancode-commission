@@ -1,11 +1,9 @@
 <?php
 if(file_exists('php_ini_setup.php')) include_once('php_ini_setup.php');
-// ini_set('display_errors', 1);
-// error_reporting(E_ALL);
 include_once("file2db_object_definition.php");
 require_once("../commission_db_connect.php");
 
-$sql = "SELECT filename FROM file WHERE transform = 1 AND totxt = 1 AND todb = 0 ORDER BY id LIMIT 1";
+$sql = "SELECT filename FROM file WHERE transform = 1 AND totxt = 1 AND todb = 0 ORDER BY id DESC LIMIT 1";
 $result = $db2->query($sql, PDO::FETCH_ASSOC);
 unset($sql);
 
@@ -13,10 +11,10 @@ while ($row = $result->fetch()) {
   $filename = $row['filename'];
 }
 
-if(isset($filename)) {
-    //development example setup
-    // $filename = "TPE_O_702_1";
+// development example setup
+// $filename = "MOI_O_864_1";
 
+if(isset($filename)) {
     //extract admin and round variable from file name
     preg_match("/^(.*?)_([O|N])_([0-9]+)_(.*?)$/", $filename, $fmatch);
     $admin = $fmatch[1].$fmatch[2];
@@ -59,7 +57,6 @@ function file2db($filepath, $admin, $round, $db2)
     loadJson($note, $json_data);
     $note->setNoteCode();
     $note->setJson(array('attend_committee', 'attend_unit'));
-
     insertNote('note_table', $note);
 
     foreach($json_data as $key => $value) {
@@ -94,6 +91,7 @@ function file2db($filepath, $admin, $round, $db2)
 
 function createItem($item_array, $key, $note_code, $note_date) {
     $item_tag = array('',
+                    'read_item',
                     'report_item',
                     'confirm_item',
                     'deliberate_item',
@@ -128,24 +126,48 @@ function loadJson($class, $json) {
 }
 
 function buildCaseCode($case_item, $note_date) {
-    $case_title = $case_item->case_title;
     $admin = substr($case_item->note_code, 0, 3);
-    $title = $case_title[0];
-    $title = preg_replace('/「|」/', '', $title);
-    $title = mb_substr($title, mb_strpos($title, '：')+1);
 
-    if(preg_match('/通盤檢討/', $title)) {
-        $code_head = $admin . '通檢';
-        $dist = '區|鄉|鎮';
+    $case_title = $case_item->case_title;
+    if(gettype($case_title) == 'string') {
+        $title = $case_title;
     } else {
-        $code_head = $admin . mb_substr($title, 0, 2);
-        $dist = '省|部|院|市|縣';
+        $title = implode('', $case_title);
     }
 
-    preg_match("/$dist/", $title, $test, PREG_OFFSET_CAPTURE);
-    $code_sec1 = mb_substr($title, $test[0][1]/3-2, 3);
+    $title = preg_replace('/「|」/', '', $title);
+    if(preg_match('/：/', $title)) $title = mb_substr($title, mb_strpos($title, '：')+1);
+
+    if(preg_match('/通盤檢討/', $title)) {
+        $code_head = '通檢';
+    } else if(preg_match('/確認.*紀錄/', $title)) {
+        $code_head = '確認';
+    } else {
+        $code_head = mb_substr($title, 0, 2);
+    }
+
+    switch($code_head) {
+        case '確認':
+            $dist = '次';
+            preg_match('/第(.*?)(及?)?(.*?)次/', $title, $match);
+            preg_match('/\d+/', $match[sizeof($match)-1], $match);
+            $code_sec1 = $match[0].'次';
+            break;
+        default:
+            $dist = '鄉|鎮|區|專案';
+            preg_match("/$dist/", $title, $match, PREG_OFFSET_CAPTURE);
+            if(!empty($match)) {
+                $code_sec1 = mb_substr($title, $match[0][1]/3-2, 3);
+            } else if (preg_match("/配合/", $title)) {
+                preg_match("/配合/", $title, $match, PREG_OFFSET_CAPTURE);
+                $code_sec1 = mb_substr($title, $match[0][1]/3, 3);
+            } else {
+                $code_sec1 = '變都計';
+            }
+    }
+
     $code_sec2 = preg_replace('/\//', '', $note_date);
-    $case_code = $code_head . $code_sec1. $code_sec2;
+    $case_code = $admin . $code_head . $code_sec1. $code_sec2;
 
     return $case_code;
 }
@@ -177,7 +199,12 @@ function insertNote($table, $note_object) {
 
     foreach($note_object as $k => $v) {
         array_push($fields, $k);
+
         if(gettype($v) == 'array') $v = json_encode($v, JSON_UNESCAPED_UNICODE);
+
+        //unescaped ' would cause PDO error
+        $v = preg_replace('/\'/', '\\\'', $v);
+
         array_push($values, $v);
         array_push($question_mark, '?');
         if($k != $key) array_push($updates, "$k='$v'");
@@ -201,6 +228,11 @@ function insertNote($table, $note_object) {
 
     try {
         $result = $stmt->execute();
+        if($stmt->errorInfo()[0] != '00000') {
+            var_dump($stmt->errorInfo());
+            var_dump($values);
+        }
+        unset($stmt);
     } catch (PDOException $e) {
         echo 'error: ' . $e->getMessage();
     }

@@ -10,10 +10,12 @@ while ($row = $result->fetch()) {
   $filename = $row['filename'];
 }
 
+// $filename = 'TPE_O_717_1';
+
 $place = substr($filename,0,3);
 
-// $place = '';
-// include_once("variables/MOI_variables.php");
+// $place = 'TPE';
+// include_once("variables/TPE_variables.php");
 // include_once("petitionParser/MOI_petitionParser.php");
 // $section_title = $sectionPack->getTitleString();
 // record_parse('./txt/MOI_O_892_1.txt');
@@ -72,7 +74,10 @@ function record_parse($target_file) {
           } else if((preg_match("/^(($zh_number_low)+)$/", $txtline, $page_num))) {
               $zh_page = 1;
           }
+      } else {
+          continue;
       }
+
       //drop page number lines
       if(!empty($page_num) && !$zh_page) {
           $this_page = $page_num[0];
@@ -89,6 +94,8 @@ function record_parse($target_file) {
       }
   }
   fclose($txtfile);
+
+  // var_dump($fulltxt);
 
   if(empty($fulltxt)) return("empty file: $target_file");
   //basic parameters setup
@@ -130,6 +137,8 @@ function record_parse($target_file) {
   $json_obj = new jsonArray;
   if(isset($header_array)) $json_obj->loadInto($header_array);
   if(isset($item_array)) $json_obj->loadInto($item_array);
+
+  // var_dump($json_obj);
 
   $output_file = preg_replace("/txt/", "json", $target_file);
   echo $output_file."<br>";
