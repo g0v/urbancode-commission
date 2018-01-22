@@ -30,22 +30,23 @@ code 存放位置
 #### crawler 各縣市都委會網站爬蟲
 需另外引入pdfparser
 需另外設置connect_mysql.php以連接資料庫(PDO方式連接)
-* /code/file.php
-* /code/page.php
+* /code/crawler_file.php
+* /code/crawler_page.php
+* /code/crawler_toolbox.php
+* /code/crawler_transform.php
 * /code/simple_html_dom.php
-* /code/toolbox.php
-* /transform.php
 
 #### TXT-JSON 格式轉換
 txt to json parser ver.1
-* /code/txt_to_json_convert.php
-* /code/functions.php
-* /code/class_definition.php
-* /code/variables/\*\_variables.php
+* /code/txt2json_convert.php
+* /code/txt2json_functions.php
+* /code/txt2json_class_definition.php
+* /code/txt2json_variables/\*\_variables.php
+* /code/txt2json_petitionParser/\*\_petitionParser.php
 
 #### Database 置入 file2db
-* code/file_to_db.php
-* code/object_definition.php
+* code/file2db.php
+* code/file2db_object_definition.php
 
 ### google drive
 委員會會議記錄txt存放位置： https://drive.google.com/drive/folders/0B1Y7b2xwFvAxcXpMSXNIWEg3MWs?usp=sharing

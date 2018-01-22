@@ -2,30 +2,30 @@
 $zh_number_cap = '壹|貳|參|肆|伍|陸|柒|捌|玖|拾|零';
 $zh_number_low = '一|二|三|四|五|六|七|八|九|十|〇';
 
-function file_list_array($dir = 'txt', $filter = 'all') {
-  $list = glob("./$dir/*");
-  foreach($list as $k => $file) {
-    if(!preg_match("/.$dir$/", $file)) {
-      unset($list[$k]);
-    }
-    if($filter != 'all') {
-      if(!preg_match("/$filter/", $file)) {
-        unset($list[$k]);
-      }
-    }
-  }
-  $list = array_values($list);
-  return($list);
-}
+// function file_list_array($dir = 'txt', $filter = 'all') {
+//   $list = glob("./$dir/*");
+//   foreach($list as $k => $file) {
+//     if(!preg_match("/.$dir$/", $file)) {
+//       unset($list[$k]);
+//     }
+//     if($filter != 'all') {
+//       if(!preg_match("/$filter/", $file)) {
+//         unset($list[$k]);
+//       }
+//     }
+//   }
+//   $list = array_values($list);
+//   return($list);
+// }
 
 function find_index($fulltxt, $title_string) {
-  $index = array();
-  foreach($fulltxt as $k => $v) {
-    if(preg_match("/$title_string/", $v)) {
-      array_push($index, $k);
+    $index = array();
+    foreach($fulltxt as $k => $v) {
+        if(preg_match("/$title_string/", $v)) {
+            array_push($index, $k);
+        }
     }
-  }
-  return($index);
+    return($index);
 }
 
 function slice_my_array($fulltxt, $index_array) {
@@ -141,7 +141,7 @@ function findTime($txt_line) {
 
   $noon = (preg_match("/下午/", $txt_line))? 'after' : 'before';
   $txt_line = preg_replace("/\(|\)|（|）|時間：/", "", $txt_line);
-  if(preg_match("/散會/", $txt_line)) $txt_line = preg_split("/散會/", $txt_line)[1];
+  if(preg_match("/散會(：)?/", $txt_line)) $txt_line = preg_split("/散會(：)?/", $txt_line)[1];
   $s_time = preg_split("/點|時|：|:/", $txt_line);
   $s_time = preg_replace("/(上|下|中)午|分/", "", $s_time);
 

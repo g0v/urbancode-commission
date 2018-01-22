@@ -1,10 +1,11 @@
 <?php
-error_reporting(E_ALL);
-ini_set('memory_limit', '1024M');
-if (!ini_get('display_errors')) {
-    ini_set('display_errors', '1');
-}
-include_once 'toolbox.php';
+// error_reporting(E_ALL);
+// ini_set('memory_limit', '1024M');
+// if (!ini_get('display_errors')) {
+//     ini_set('display_errors', '1');
+// }
+if(file_exists('php_ini_setup.php')) include_once('php_ini_setup.php');
+include_once('crawler_toolbox.php');
 
 $result = $db->query("SELECT * FROM page WHERE already=0 AND ((text!='' AND gov!='MOICRO_O' AND gov!='KEE_O') OR gov='TPE_O' OR gov='TXG_O' OR gov='TXG_N') LIMIT 0,5");
 while ($row = $result->fetch()) {
@@ -123,7 +124,7 @@ function file_text_parser($text)
         }
     } elseif ($text == '第二次專案會議紀錄') {
         $number = '第二次專案會議紀錄';
-    }else {
+    } else {
         exit($text);
     }
 
