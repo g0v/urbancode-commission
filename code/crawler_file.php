@@ -1,9 +1,4 @@
 <?php
-// error_reporting(E_ALL);
-// ini_set('memory_limit', '1024M');
-// if (!ini_get('display_errors')) {
-//     ini_set('display_errors', '1');
-// }
 if(file_exists('php_ini_setup.php')) include_once('php_ini_setup.php');
 include_once('crawler_toolbox.php');
 
@@ -23,11 +18,11 @@ while ($row = $result->fetch()) {
         $url  = $row['url'];
     } else if ($row['gov'] == 'TPE_O') {
         $html = str_get_html(curl_simple($row['url']));
-        if (!$html->find('.download', 0)) {
+        if (!$html->find('.list-text file-download-multiple', 0)) {
             continue;
         }
-        $text = $html->find('.download', 0)->find('li', 0)->plaintext;
-        $url  = 'http://www.tupc.gov.taipei/' . $html->find('.download', 0)->find('a', 0)->href;
+        $text = $html->find('.list-text file-download-multiple', 0)->find('li', 0)->plaintext;
+        $url  = 'http://www.tupc.gov.taipei/' . $html->find('.list-text file-download-multiple ', 0)->find('a', 0)->href;
     } else if ($row['gov'] == 'TXG_O' || $row['gov'] == 'TXG_N') {
         $html = curl_simple($row['url']);
         if (preg_match('/class="attachment"[\s\S]*?<\/section>/', $html, $match)) {

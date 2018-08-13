@@ -4,8 +4,7 @@ include_once '../connect_mysql.php';
 include_once 'simple_html_dom.php';
 
 try {
-  // $page_upload = $db->prepare('INSERT IGNORE INTO page(gov,url,text) VALUES(:gov,:url,:text)');
-    $page_upload = $db->prepare('INSERT INTO page(gov,url,text) VALUES(:gov,:url,:text) ON DUPLICATE KEY UPDATE');
+    $page_upload = $db->prepare('INSERT INTO page(gov,url,text) VALUES(:gov,:url,:text) ON DUPLICATE KEY UPDATE gov=:gov, text=:text');
 } catch (PDOException $e) {
     echo 'error: ' . $e->getMessage();
 }

@@ -5,7 +5,7 @@ include_once('crawler_toolbox.php');
 function TXG()
 {
     global $page_upload, $gov, $url, $text;
-    $content = curl_simple('http://www.ud.taichung.gov.tw/lp.asp?CtNode=22422&CtUnit=6506&BaseDSD=7&mp=127010&nowPage=1');//&pagesize=3000');
+    $content = curl_simple('https://www.ud.taichung.gov.tw/29137/29143/Lpsimplelist');
     preg_match('/class="list"[\s\S]*?<\/ul>[\s\S]*?<\/div>/', $content, $match);
     $html = str_get_html($match[0]);
     $list = $html->find('ul', 0)->find('li');
@@ -18,18 +18,18 @@ function TXG()
         } else {
             $gov = 'TXG_N';
         }
-        $url  = 'http://www.ud.taichung.gov.tw/' . $link->href;
-        $text = '';
-
+        $url  = 'http://www.ud.taichung.gov.tw' . $link->href;
+        $text = $link->title;
         $page_upload->execute();
     }
 }
+
 function TPE()
 {
     global $page_upload, $gov, $url, $text;
-    $content = curl_simple('http://www.tupc.gov.taipei/lp.asp?CtNode=6308&CtUnit=4388&BaseDSD=7&mp=120021&nowPage=1&pagesize=1');//5000');
+    $content = curl_simple('http://www.tupc.gov.taipei/lp.asp?CtNode=6308&CtUnit=4388&BaseDSD=7&mp=120021&nowPage=1&pagesize=1');
     $html    = str_get_html($content);
-    $list    = $html->find('.list', 0)->find('ul', 0)->find('li');
+    $list    = $html->find('.CCMS_jGridView_td_Class_1');
     foreach ($list as $value) {
         $link = $value->find('a', 0);
 
@@ -38,9 +38,8 @@ function TPE()
         if(preg_match('/doc|docx|pdf/',$url)){
             $text = $link->plaintext;
         }else{
-            $text = '';
+            $text = $link->title;
         }
-
         $page_upload->execute();
     }
 
@@ -50,18 +49,11 @@ function TAO()
 {
   global $page_upload, $gov, $url, $text;
 
-  $content = curl_simple('http://urdb.tycg.gov.tw/home.jsp?id=116&parentpath=0%2C2%2C7%2C87', ['page' => 1, 'pagesize' => 1]);//5000]);
+  $content = curl_simple('http://urdb.tycg.gov.tw/home.jsp?id=116&parentpath=0%2C2%2C7%2C87', ['page' => 1]);
   $html = str_get_html($content);
   $list = $html->find('#messageform', 0)->find('div[id=home_content]', 0)->find('div[id=home_content00]', 0)->find('div#content_list', 0)->find('.list_list');
-  // print_r(count($list));
-  $i    = 0;
-  foreach ($list as $tr) {
-    if ($i == 1) {
-      $i = 0;
-      continue;
-    }
-    $i = 1;
 
+  foreach ($list as $tr) {
     $link  = $tr->find('.list_title', 0)->find('a', 0);
     $title = $link->plaintext;
     if (preg_match('/桃園縣/', $title)) {
@@ -74,6 +66,7 @@ function TAO()
     $page_upload->execute();
   }
 }
+
 function KHH($type = 'new')
 {
     global $page_upload, $gov, $url, $text;
@@ -455,7 +448,7 @@ $function_list = [
 foreach ($function_list as $place) {
     try {
         call_user_func($place, 'new');
-        echo 'Success ('. $place .')' . PHP_EOL;
+        error_log('Success ('. $place .')');
     } catch (Exception $e) {
         echo 'Crawler failed ('. $place .'): ' . $e->getMessage() . PHP_EOL;
         $log_file = 'error.log';
@@ -464,11 +457,11 @@ foreach ($function_list as $place) {
         file_put_contents($log_file, $current);
     }
 }
-//
-// $place = 'MOICRO';
+
+// $place = 'TAO';
 //
 // try {
-//     MOICRO('all');
+//     TAO('all');
 //     echo 'Success ('. $place .').' . PHP_EOL;
 // } catch (Exception $e) {
 //     echo 'Crawler failed ('. $place .'): ' . $e->getMessage() . PHP_EOL;
