@@ -186,3 +186,7 @@ function fixLetter($txtline) {
   }
   return($txtline);
 }
+
+function sortingHat($string) {
+    
+}

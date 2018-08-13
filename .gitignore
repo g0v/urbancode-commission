@@ -2,6 +2,7 @@ code/json/
 code/txt/
 code/origin/
 code/pdfparser/
+code/vendor
 code/error.log
 index.php
 connect_mysql.php
