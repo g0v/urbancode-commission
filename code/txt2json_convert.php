@@ -1,7 +1,7 @@
 <?php
+if(file_exists('php_ini_setup.php')) include_once('php_ini_setup.php');
 include_once('txt2json_functions.php');
 require_once("../commission_db_connect.php");
-// require_once("./vendor/autoload.php");
 
 // $sql = "SELECT * FROM file WHERE transform = 1 AND totxt = 0 ORDER BY id DESC LIMIT 1";
 $sql = "SELECT * FROM file WHERE transform = 1 AND totxt = 0 AND (filename LIKE '%TPE%' OR filename LIKE '%MOI%') ORDER BY id DESC LIMIT 1";
@@ -11,15 +11,15 @@ while ($row = $result->fetch()) {
   $filename = $row['filename'];
 }
 
-// $filename = 'TPE_O_717_1';
-
+// $filename = 'TPE_O_732_1';
+//
 $place = substr($filename,0,3);
 
 // $place = 'TPE';
-// include_once("variables/TPE_variables.php");
-// include_once("petitionParser/MOI_petitionParser.php");
+// include_once("txt2json_variables/TPE_variables.php");
+// include_once("txt2json_petitionParser/TPE_petitionParser.php");
 // $section_title = $sectionPack->getTitleString();
-// record_parse('./txt/MOI_O_892_1.txt');
+// record_parse('./txt/TPE_O_732_1.txt');
 
 if(preg_match("/TPE|MOI/", $place)) {
     include_once("txt2json_variables/".$place."_variables.php");
@@ -59,7 +59,7 @@ function record_parse($target_file) {
   //read in txt lines
   while(!feof($txtfile)) {
       $page_num = array();
-      $page_line = 0;
+      $page_line = FALSE;
 
       $txtline = trim(fgets($txtfile));
       $txtline = mb_convert_encoding($txtline, "UTF-8");
@@ -81,13 +81,13 @@ function record_parse($target_file) {
 
       //drop page number lines
       if(!empty($page_num) && !$zh_page) {
-          $this_page = $page_num[0];
+          $this_page = $page_num[1];
           if($this_page == $current_page+1) {
               $current_page += 1;
-              $page_line = 1;
+              $page_line = TRUE;
           }
       } else if(!empty($page_num) && $zh_page) {
-          $page_line = 1;
+          $page_line = TRUE;
       }
       if($page_line) {
       } else {

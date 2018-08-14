@@ -12,17 +12,18 @@ while ($row = $result->fetch()) {
 
     $page_already->bindValue(':already', 2);
     $page_already->execute();
-
-    if ($row['text'] != '') {
+    print_r($row);
+    if ($row['text'] == '') { //需要新增其他指標分辨是否為直接下載網址
         $text = preg_replace('/\s/', '', $row['text']);
         $url  = $row['url'];
     } else if ($row['gov'] == 'TPE_O') {
         $html = str_get_html(curl_simple($row['url']));
-        if (!$html->find('.list-text file-download-multiple', 0)) {
+        if (!$html->find('div[class=list-text file-download-multiple]', 0)) {
             continue;
+            echo 'none';
         }
-        $text = $html->find('.list-text file-download-multiple', 0)->find('li', 0)->plaintext;
-        $url  = 'http://www.tupc.gov.taipei/' . $html->find('.list-text file-download-multiple ', 0)->find('a', 0)->href;
+        $text = $html->find('div[class=list-text file-download-multiple]', 0)->find('a', 0)->plaintext;
+        $url  = $html->find('div[class=list-text file-download-multiple]', 0)->find('a', 1)->href;
     } else if ($row['gov'] == 'TXG_O' || $row['gov'] == 'TXG_N') {
         $html = curl_simple($row['url']);
         if (preg_match('/class="attachment"[\s\S]*?<\/section>/', $html, $match)) {
